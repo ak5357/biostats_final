@@ -1,0 +1,22 @@
+---
+title: "Regression (Math Score)"
+author: "Arghya Kannadaguli (ak5357)"
+date: "2024-12-09"
+output: html_document
+---
+
+```{r setup, include = FALSE}
+library(tidyverse)
+library(stringr)
+library(dplyr)
+library(ggplot2)
+```
+
+Import data
+```{r}
+source("scores_data.R")
+
+scores_df
+
+```
+
