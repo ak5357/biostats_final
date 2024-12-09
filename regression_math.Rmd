@@ -1,22 +1,72 @@
 ---
-title: "Regression (Math Score)"
-author: "Arghya Kannadaguli (ak5357)"
-date: "2024-12-09"
+title: "Regression (Math Scores)"
 output: html_document
 ---
 
-```{r setup, include = FALSE}
-library(tidyverse)
-library(stringr)
+```{r reg_math_setup, include = FALSE}
+# IMPORT LIBRARIES
 library(dplyr)
 library(ggplot2)
+
+# DEFAULT SETTINGS FOR PLOTS
+knitr::opts_chunk$set(
+  fig.width = 6,
+  fig.asp = .8,
+  out.width = "90%",
+  fig.align = "center"
+)
+
+# DEFAULT SETTINGS FOR PLOT THEME
+theme_set(
+  theme_classic() +
+    theme(
+      plot.title = element_text(hjust = 0.5), # Center the title
+      plot.subtitle = element_text(hjust = 0.5, margin = margin(b = 10)), # Center the subtitle
+      plot.caption = element_text(hjust = 0.5), # Center the caption
+      legend.position = "bottom"
+    )
+)
 ```
 
-Import data
-```{r}
+Import data.
+```{r message = FALSE}
 source("scores_data.R")
-
-scores_df
-
 ```
 
+Preview data.
+```{r}
+scores_dummies_df |>
+  head(10)
+```
+
+All nominal variables have been changed to dummy variables. Ordinal variables (e.g. parent_educ) have been assigned factor levels. Numeric variables have not been changed.
+
+Basic GLM linear regression model for Math Scores.
+
+Using dummy variables.
+```{r}
+covariates_dumm = scores_dummies_df |> 
+  select(-contains("score"), -id) |> 
+  colnames() |> 
+  paste(collapse = " + ")
+
+math_formula_dumm = reformulate(covariates, response = "math_score")
+
+glm(math_formula_dumm, data = scores_dummies_df) |> 
+  broom::tidy() |>
+  filter(p.value < 0.05) #make sure to check variables with NA coefficients (due to multicollinearity)
+```
+
+Not using dummy variables.
+```{r}
+covariates = scores_df |> 
+  select(-contains("score"), -id) |> 
+  colnames() |> 
+  paste(collapse = " + ")
+
+math_formula = reformulate(covariates, response = "math_score")
+
+glm(math_formula, data = scores_df) |> 
+  broom::tidy() |>
+  filter(p.value < 0.05)
+```

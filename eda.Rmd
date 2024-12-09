@@ -1,0 +1,148 @@
+---
+title: "Exploratory Data Analysis"
+output: html_document
+---
+
+```{r eda_setup, include = FALSE}
+# IMPORT LIBRARIES
+library(tidyverse)
+library(stringr)
+library(dplyr)
+library(ggplot2)
+
+# DEFAULT SETTINGS FOR PLOTS
+knitr::opts_chunk$set(
+  fig.width = 6,
+  fig.asp = .8,
+  out.width = "90%",
+  fig.align = "center"
+)
+
+# DEFAULT SETTINGS FOR PLOT THEME
+theme_set(
+  theme_classic() +
+    theme(
+      plot.title = element_text(hjust = 0.5), # Center the title
+      plot.subtitle = element_text(hjust = 0.5, margin = margin(b = 10)), # Center the subtitle
+      plot.caption = element_text(hjust = 0.5), # Center the caption
+      legend.position = "bottom"
+    )
+)
+```
+
+Import data.
+```{r}
+source("scores_data.R")
+```
+
+Preview data.
+```{r}
+scores_df |> 
+  head(10)
+```
+
+# **Visualizing Scores and Covariates**
+```{r}
+scores_compare_df = scores_df |> 
+  pivot_longer(
+    contains("_score"),
+    names_to = "score_type",
+    values_to = "score"
+  ) |> 
+  mutate(
+    score_type = str_replace(score_type, "_score", " Score") |> 
+      str_to_title()
+    )
+```
+
+### Gender
+
+General distribution.
+```{r}
+scores_df |> 
+  ggplot(aes(x = gender, fill = gender)) +
+  geom_bar(color = "black") +
+  labs(
+    title = ("Gender Distribution"),
+    x = "Gender",
+    y = "Count",
+    fill = "Gender"
+  )
+```
+
+Gender and Test Scores.
+```{r}
+scores_compare_df |> 
+  ggplot(aes(x = score, color = score_type, fill = str_to_title(gender))) +
+  geom_density(alpha = 0.5, color = "black") +
+  labs(
+    title = ("Gender and Test Scores"),
+    x = "Score (0-100)",
+    y = "Density",
+    fill = "Gender"
+  ) +
+  facet_grid(. ~ score_type)
+```
+
+### Ethnic Group
+
+General distribution.
+```{r}
+scores_df |> 
+  ggplot(aes(x = ethnic_group, fill = ethnic_group)) +
+  geom_bar(color = "black", alpha = 0.5) +
+  labs(
+    title = ("Ethnic Group Distribution"),
+    x = "Ethnic Group",
+    y = "Count",
+    fill = "Ethnic Group"
+  )
+```
+
+Math Score.
+```{r}
+scores_df |>
+  ggplot(aes(x = math_score, fill = ethnic_group)) +
+  geom_histogram(alpha = 0.5, color = "black", bins = 10) +
+  labs(
+    title = ("Ethnic Group and Math Scores"),
+    x = "Math Score (0-100)",
+    y = "Density",
+    fill = "Ethnic Group"
+  ) +
+  facet_grid(. ~ ethnic_group)
+```
+
+Reading Score.
+```{r}
+scores_df |>
+  ggplot(aes(x = reading_score, fill = ethnic_group)) +
+  geom_histogram(alpha = 0.5, color = "black", bins = 10) +
+  labs(
+    title = ("Ethnic Group and Reading Scores"),
+    x = "Reading Score (0-100)",
+    y = "Density",
+    fill = "Ethnic Group"
+  ) +
+  facet_grid(. ~ ethnic_group)
+```
+
+Writing Score.
+```{r}
+scores_df |>
+  ggplot(aes(x = writing_score, fill = ethnic_group)) +
+  geom_histogram(alpha = 0.5, color = "black", bins = 10) +
+  labs(
+    title = ("Ethnic Group and Writing Scores"),
+    x = "Writing Score (0-100)",
+    y = "Density",
+    fill = "Ethnic Group"
+  ) +
+  facet_grid(. ~ ethnic_group)
+```
+
+```{r}
+scores_df |> colnames()
+```
+
+
