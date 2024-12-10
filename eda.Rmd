@@ -145,4 +145,92 @@ scores_df |>
 scores_df |> colnames()
 ```
 
+```{r}
+library(here)
+```
+
+
+```{r}
+# Load necessary libraries
+library(dplyr)
+library(ggplot2)
+library(tidyverse)
+
+library(readr)
+Project_1_data <- read_csv("data/Project_1_data.csv")
+View(Project_1_data)
+
+# Summary statistics for all variables
+summary_stats <- summary(Project_1_data )
+print(summary_stats)
+
+# Visualize the distribution of MathScore, ReadingScore, and WritingScore
+ggplot(Project_1_data, aes(x = MathScore)) + 
+  geom_histogram(binwidth = 5, fill = "blue", alpha = 0.7) + 
+  labs(title = "Distribution of Math Scores", x = "Math Score", y = "Frequency")
+
+ggplot(Project_1_data, aes(x = ReadingScore)) + 
+  geom_histogram(binwidth = 5, fill = "green", alpha = 0.7) + 
+  labs(title = "Distribution of Reading Scores", x = "Reading Score", y = "Frequency")
+
+ggplot(Project_1_data, aes(x = WritingScore)) + 
+  geom_histogram(binwidth = 5, fill = "red", alpha = 0.7) + 
+  labs(title = "Distribution of Writing Scores", x = "Writing Score", y = "Frequency")
+
+# Check for outliers using boxplots
+ggplot(Project_1_data, aes(y = MathScore)) + 
+  geom_boxplot(fill = "blue") + 
+  labs(title = "Boxplot of Math Scores", y = "Math Score")
+
+ggplot(Project_1_data, aes(y = ReadingScore)) + 
+  geom_boxplot(fill = "green") + 
+  labs(title = "Boxplot of Reading Scores", y = "Reading Score")
+
+ggplot(Project_1_data, aes(y = WritingScore)) + 
+  geom_boxplot(fill = "red") + 
+  labs(title = "Boxplot of Writing Scores", y = "Writing Score")
+
+```
+```{r}
+# Check for missing values
+missing_values <- colSums(is.na(Project_1_data))
+print(missing_values)
+
+# Explore distribution of numeric scores
+numeric_vars <- Project_1_data %>% select(MathScore, ReadingScore, WritingScore)
+summary(numeric_vars)
+
+# Check for potential outliers in numeric scores
+outliers <- numeric_vars %>% 
+  gather(key = "variable", value = "value") %>%
+  group_by(variable) %>%
+  summarize(lower_bound = quantile(value, 0.25) - 1.5 * IQR(value),
+            upper_bound = quantile(value, 0.75) + 1.5 * IQR(value)) %>%
+  left_join(numeric_vars %>% gather(key = "variable", value = "value"), by = "variable") %>%
+  filter(value < lower_bound | value > upper_bound)
+
+print(outliers)
+
+# Visualize distributions
+Project_1_data %>%
+  gather(key = "variable", value = "value", MathScore, ReadingScore, WritingScore) %>%
+  ggplot(aes(x = value, fill = variable)) +
+  geom_histogram(bins = 30, alpha = 0.7, position = "identity") +
+  facet_wrap(~ variable, scales = "free") +
+  theme_minimal()
+
+# Visualize categorical variables
+categorical_vars <- Project_1_data %>% select(Gender, EthnicGroup, ParentEduc, LunchType, TestPrep, 
+                                        ParentMaritalStatus, PracticeSport, IsFirstChild, 
+                                        TransportMeans, WklyStudyHours)
+
+categorical_plots <- categorical_vars %>%
+  gather(key = "variable", value = "value") %>%
+  ggplot(aes(x = value, fill = variable)) +
+  geom_bar(alpha = 0.7) +
+  facet_wrap(~ variable, scales = "free", ncol = 3) +
+  theme_minimal()
+
+print(categorical_plots)
+```
 
