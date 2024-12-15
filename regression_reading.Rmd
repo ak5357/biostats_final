@@ -1,0 +1,142 @@
+---
+title: "Reading Regression"
+author: "mk4995"
+date: "2024-12-15"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Explore variables.
+
+Import data.
+
+```{r}
+source("scores_data.R")
+```
+
+
+```{r}
+# scores_df = 
+  # scores_df |> na.omit()
+
+scores_df |> 
+  gtsummary::tbl_summary() |> 
+  gtsummary::bold_labels() |> 
+  gtsummary::italicize_levels()
+
+pairs(scores_df)
+```
+
+## Decide if `reading_score` needs to be transformed.
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(patchwork)
+
+scores_df |> 
+  ggplot(aes(x = (reading_score))) +
+  geom_boxplot()
+
+scores_df |> 
+  ggplot(aes(sample = (reading_score))) +
+  geom_qq() + geom_qq_line()
+
+scores_df |> 
+  filter(!(id == 33)) |> 
+  ggplot(aes(sample = reading_score)) +
+  geom_qq() + geom_qq_line()
+
+library(caret)
+
+# Create a Box-Cox transformation object
+bc_transform <- BoxCoxTrans(scores_df$reading_score)  # Replace Area with your variable
+
+# View the optimal lambda
+bc_transform$lambda
+
+scores_df |> 
+  ggplot(aes(x = (reading_score)^2)) +
+  geom_boxplot()
+
+scores_df = 
+  scores_df |> 
+  mutate(reading_score_squared = (reading_score)^2) 
+```
+
+## Basic regression models
+
+Without other scores and no transformation:
+
+```{r}
+reading_df = scores_df |> select(-c(id, math_score, writing_score))
+
+reading_model = lm(reading_score ~ ., data = reading_df)
+summary(reading_model)
+```
+
+Significant coefficients:
+
+- (Intercept)
+- gendermale
+- ethnic_groupE
+- lunch_typestandard
+- test_prepcompleted
+- parent_marital_statusmarried
+
+# Check spread of residuals.
+
+**RSE = 13.27**: Indicates the average difference betweeen observed and fitted values.
+
+**R^2 = 0.2609**
+About 26.09% of the variability in reading score is explained by the covariates.
+
+**Adj-R^2 = 0.2182**
+After penalizing for the predictors in the model that don't add anything useful, 21.82% of the variability in reading score is explained by the covariates.
+
+```{r}
+reading_transformed_df = 
+  reading_df |> 
+  mutate(reading_score_squared = reading_score^2) |> 
+  select(-reading_score)
+
+reading_transformed_model = lm(reading_score_squared ~ ., data = reading_transformed_df)
+summary(reading_transformed_model)
+```
+
+## Creating optimal models
+
+Start regression procedures without the other score variables against `reading_score`.
+
+```{r}
+# Does not contain id, math score, wrting score, or NAs
+reading_df = scores_df |> na.omit() |> select(-c(id, math_score, writing_score))
+```
+
+Use forward and backward model selection and test-based procedures.
+
+```{r}
+# Backward model
+mult.fit = lm(reading_score ~ ., data = reading_df)
+summary(mult.fit)
+backward_model = step(mult.fit, direction = "backward")
+summary(backward_model)
+```
+
+The resulting model is:
+
+$$
+\text{reading_score} = \beta_0 + \beta_1 \cdot \text{gender} + \beta_2 \cdot \text{ethnic_group} + \beta_3 \cdot \text{lunch_type} + \beta_4 \cdot \text{test_prep} + \beta_5 \cdot \text{parent_marital_status} + \beta_6 \cdot \text{is_first_child}
+$$
+
+```{r}
+# Forward model
+null_model = lm(reading_score ~ 1, data = scores_df1)
+forward_model = step(null_model, direction = "forward", scope = formula(mult.fit))
+summary(forward_model)
+```
+
+

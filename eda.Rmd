@@ -191,6 +191,8 @@ ggplot(Project_1_data, aes(y = WritingScore)) +
   labs(title = "Boxplot of Writing Scores", y = "Writing Score")
 
 ```
+
+
 ```{r}
 # Check for missing values
 missing_values <- colSums(is.na(Project_1_data))
