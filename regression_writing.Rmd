@@ -1,0 +1,252 @@
+---
+title: "Writing Regression"
+author: "Riya Kalra"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE, echo=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(ggplot2)
+library(patchwork)
+```
+
+## Data Preparation
+
+```{r load-data, echo=FALSE}
+# Load the dataset
+source("scores_data.R")
+scores_df |> 
+  gtsummary::tbl_summary() |> 
+  gtsummary::bold_labels() |> 
+  gtsummary::italicize_levels()
+```
+
+## Visualize the distribution of writing_score
+
+```{r, echo=FALSE}
+scores_df |> 
+  ggplot(aes(x = (writing_score))) +
+  geom_boxplot()
+
+# Q-Q plot for writing_score
+scores_df |> 
+  ggplot(aes(sample = (writing_score))) +
+  geom_qq() + geom_qq_line()
+```
+Based on this plot, we see a roughly straight diagonal, but deviations at the tails. This could indicate a potential issue with normality.
+
+We can apply a logarithmic or a Box-Cox transformation to solve this issue. Let's try both and pick the one with a lower adjusted R^2 value and a lower AIC.
+
+```{r, echo=FALSE}
+# Load required library
+library(caret)
+
+# Create a binary variable for gendermale
+scores_df$gendermale <- ifelse(scores_df$gender == "male", 1, 0)
+
+# Verify the variable
+table(scores_df$gendermale)
+
+# Box-Cox Transformation
+boxcox_obj <- BoxCoxTrans(scores_df$writing_score)  
+scores_df$writing_score_boxcox <- predict(boxcox_obj, newdata = scores_df$writing_score)
+
+# Log Transformation
+scores_df$writing_score_log <- log(scores_df$writing_score + 1)  # Add 1 to avoid log(0)
+
+# Build models for both transformations
+model_boxcox <- lm(writing_score_boxcox ~ ., data = scores_df |> select(-c(id, writing_score_log, writing_score)))
+model_log <- lm(writing_score_log ~ ., data = scores_df |> select(-c(id, writing_score_boxcox, writing_score)))
+
+# Compare Normality of Residuals
+par(mfrow = c(2, 2))
+
+# Box-Cox Residuals
+plot(model_boxcox, which = 2, main = "Q-Q Plot: Box-Cox Residuals")
+
+# Log Residuals
+plot(model_log, which = 2, main = "Q-Q Plot: Log Residuals")
+
+# Compare AIC and R-squared for both models
+cat("Box-Cox Model AIC:", AIC(model_boxcox), "\n")
+cat("Log Model AIC:", AIC(model_log), "\n")
+
+cat("Box-Cox Model Adjusted R-squared:", summary(model_boxcox)$adj.r.squared, "\n")
+cat("Log Model Adjusted R-squared:", summary(model_log)$adj.r.squared, "\n")
+```
+Based on the results:
+
+Log Model AIC (-614.1538) is significantly lower than the Box-Cox Model AIC (2739.218), indicating the log model has a better fit.
+
+However, Box-Cox Model Adjusted R-squared (0.9492) is higher than the Log Model Adjusted R-squared (0.8741), suggesting the Box-Cox model explains more variability in the data.
+
+Given the substantial difference in AIC (a strong measure of model fit) and the adjusted R-squared being reasonably high for the log model, the log model appears to be the better choice overall for both predictive power and fit.
+
+## Regression Model
+
+```{r regression-model, echo=FALSE}
+# Final dataset with log-transformed writing_score
+final_data <- scores_df |> select(-c(id, writing_score_boxcox))
+
+# Build the regression model with the log-transformed `writing_score`
+final_log_model <- lm(writing_score_log ~ ., data = final_data)
+
+# Model summary
+summary(final_log_model)
+
+# Residual diagnostics
+par(mfrow = c(2, 2))
+plot(final_log_model)
+```
+```{r, echo=FALSE}
+# Evaluate normality and homoscedasticity
+library(lmtest)
+
+# Breusch-Pagan Test for homoscedasticity
+bptest(final_log_model)
+
+# Shapiro-Wilk Test for residual normality
+shapiro.test(residuals(final_log_model))
+```
+
+## Basic Regression Model
+```{r, echo=FALSE}
+# Prepare dataset by excluding boxcox and log transformations
+writing_df_no_transform = scores_df |> 
+  select(-c(id, math_score, reading_score, writing_score_boxcox, writing_score_log))
+
+# Fit a regression model with only the original predictors
+writing_model_no_transform = lm(writing_score ~ ., data = writing_df_no_transform)
+
+# Summarize the model
+summary(writing_model_no_transform)
+
+```
+
+
+Significant coefficients:
+
+- (Intercept) (p<2e−16)
+- gendermale (p=5.56e−12)
+- ethnic_groupE (p=0.02133)
+- ethnic_groupD (p=0.04524)
+- lunch_typestandard (p=1.13e−11)
+- test_prepcompleted (p=1.66e−09)
+- parent_marital_statusmarried (p=0.00299)
+- is_first_childyes (p=0.02135)
+
+# Residual Analysis
+
+**RSE = 12.65**: the RSE represents the average difference betweeen observed and fitted values.
+
+**R^2 = 0.3537**: The R^2 value represents the fact that 35.37% of the variability in writing score is explained by the covariates.
+
+**Adj-R^2 = 0.3164**: Removing predictors in the model that don't add significance, 31.64% of the variability in writing score is explained by the selected covariates.
+
+## Create a model with the significant variables
+```{r, echo=FALSE}
+# Subset the data to include only the significant variables
+writing_df_significant = scores_df |> 
+  select(writing_score, gender, ethnic_group, lunch_type, test_prep, parent_marital_status, is_first_child)
+
+# Convert categorical variables to factors
+writing_df_significant <- writing_df_significant |> 
+  mutate(
+    gender = as.factor(gender),
+    ethnic_group = as.factor(ethnic_group),
+    lunch_type = as.factor(lunch_type),
+    test_prep = as.factor(test_prep),
+    parent_marital_status = as.factor(parent_marital_status),
+    is_first_child = as.factor(is_first_child)
+  )
+
+# Verify factor levels
+sapply(writing_df_significant, class)
+
+# Fit the regression model
+significant_model <- lm(
+  writing_score ~ gender + ethnic_group + lunch_type + test_prep + 
+                  parent_marital_status + is_first_child, 
+  data = writing_df_significant
+)
+
+# Summarize the model
+summary(significant_model)
+
+```
+
+## Model Selection
+
+### Diagnostics
+```{r, echo=FALSE}
+# Plot diagnostics for the final model
+par(mfrow = c(2, 2))
+plot(significant_model)
+
+# Check normality of residuals
+shapiro.test(residuals(significant_model))
+
+# Check homoscedasticity
+library(lmtest)
+bptest(significant_model)
+```
+
+### Backward Model
+```{r, echo=FALSE}
+# Backward model selection
+backward_model <- step(significant_model, direction = "backward")
+summary(backward_model)
+```
+
+### Forward Model
+```{r, echo=FALSE}
+# Remove rows with missing values
+writing_df_significant <- writing_df_significant |> 
+  na.omit()
+
+# Verify the number of rows after removing missing values
+nrow(writing_df_significant)
+
+# Define the null model
+null_model <- lm(writing_score ~ 1, data = writing_df_significant)
+
+# Perform forward selection
+forward_model <- step(null_model, direction = "forward", scope = formula(significant_model))
+summary(forward_model)
+```
+
+The resulting model is:
+$$
+\text{writing_score} = \beta_0 + \beta_1 \cdot \text{test_prepcompleted} + \beta_2 \cdot \text{gendermale} + \beta_3 \cdot \text{lunch_typestandard} + \beta_4 \cdot \text{ethnic_groupD} + \beta_5 \cdot \text{ethnic_groupE} + \beta_6 \cdot \text{parent_marital_statusmarried} + \beta_7 \cdot \text{parent_marital_statuswidowed}
+$$
+## Fit the final regression model
+
+```{r}
+final_model <- lm(
+  writing_score ~ test_prep + gender + lunch_type + 
+                  ethnic_group + parent_marital_status, 
+  data = writing_df_significant
+)
+
+# Summarize the final model
+summary(final_model)
+```
+
+## Diagnostics
+```{r}
+# Residual diagnostics
+par(mfrow = c(2, 2))
+plot(final_model)
+
+# Normality of residuals
+shapiro.test(residuals(final_model))
+
+# Homoscedasticity test
+library(lmtest)
+bptest(final_model)
+```
+<!-- $$ -->
+<!-- \text{writing_score} = \beta_0 + \beta_1 \cdot \text{gender} + \beta_2 \cdot \text{ethnic_group} + \beta_3 \cdot \text{lunch_type} + \beta_4 \cdot \text{test_prep} + \beta_5 \cdot \text{parent_marital_status} + \beta_6 \cdot \text{is_first_child} -->
+<!-- $$ -->
