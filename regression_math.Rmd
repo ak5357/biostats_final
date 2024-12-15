@@ -50,7 +50,7 @@ covariates_dumm = scores_dummies_df |>
   colnames() |> 
   paste(collapse = " + ")
 
-math_formula_dumm = reformulate(covariates, response = "math_score")
+math_formula_dumm = reformulate(covariates_dumm, response = "math_score")
 
 glm(math_formula_dumm, data = scores_dummies_df) |> 
   broom::tidy() |>
