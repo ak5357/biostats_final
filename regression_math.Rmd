@@ -1,6 +1,6 @@
 ---
 title: "Regression (Math Scores)"
-output: html_document
+output: github_document
 ---
 
 ```{r reg_math_setup, include = FALSE}

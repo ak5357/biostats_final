@@ -2,7 +2,7 @@
 title: "Writing Regression"
 author: "Riya Kalra"
 date: "`r Sys.Date()`"
-output: html_document
+output: github_document
 ---
 
 ```{r setup, include=FALSE, echo=FALSE}
@@ -10,6 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(dplyr)
 library(ggplot2)
 library(patchwork)
+library(tidyverse)
 ```
 
 ## Data Preparation
