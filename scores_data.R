@@ -4,7 +4,7 @@
 
 library(tidyverse)
 library(stringr)
-library(fastDummies)
+#library(fastDummies)
 
 # FUNCTIONS ----------------------------------------------
 camel_to_snake <- function(x) {
@@ -36,13 +36,13 @@ scores_df = read_csv("data/Project_1_data.csv") |>
   relocate(id)
 
 # PREP FOR REGRESSION -------------------------------------
-nominal_cols = c("gender", "ethnic_group", "lunch_type", "parent_marital_status", 
-                 "is_first_child", "transport_means")
-
-scores_dummies_df = scores_df |> 
-  dummy_cols(
-    select_columns = nominal_cols, 
-    remove_first_dummy = FALSE) |> 
-  select(-all_of(nominal_cols)) |> 
-  relocate(id)
+# nominal_cols = c("gender", "ethnic_group", "lunch_type", "parent_marital_status", 
+#                  "is_first_child", "transport_means")
+# 
+# scores_dummies_df = scores_df |> 
+#   dummy_cols(
+#     select_columns = nominal_cols, 
+#     remove_first_dummy = FALSE) |> 
+#   select(-all_of(nominal_cols)) |> 
+#   relocate(id)
 

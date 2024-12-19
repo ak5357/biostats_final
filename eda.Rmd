@@ -30,9 +30,13 @@ theme_set(
 )
 ```
 
+```{r}
+library(here)
+```
+
 Import data.
 ```{r}
-source("scores_data.R")
+read_csv("/Users/helenyousaf/Desktop/biostats_final/Project_1_data.csv")
 ```
 
 Preview data.
@@ -235,4 +239,50 @@ categorical_plots <- categorical_vars %>%
 
 print(categorical_plots)
 ```
+```{r}
+library(ggplot2)
+
+# Function to create correlation plots
+create_correlation_plot <- function(x, y, Project_1_data, title) {
+  ggplot(data, aes_string(x = x, y = y)) +
+    geom_point() +
+    geom_smooth(method = "lm", se = FALSE, color = "blue") +
+    labs(title = title, x = x, y = y) +
+    theme_minimal()
+}
+
+# List of variables to plot against WritingScore
+writing_score_vars <- c("gendermale", "ethnic_groupE", "lunch_typestandard", 
+                        "test_prepcompleted", "parent_marital_statusmarried")
+
+# List of variables to plot against ReadingScore
+reading_score_vars <- c("gendermale", "ethnic_groupE", "lunch_typestandard", 
+                        "test_prepcompleted", "parent_marital_statusmarried", 
+                        "is_first_childyes")
+
+# List of variables to plot against MathScore
+math_score_vars <- c("gendermale", "ethnic_groupE", "ethnic_groupD", 
+                     "lunch_typestandard", "test_prepcompleted", 
+                     "parent_marital_statusmarried", "parent_marital_statuswidowed", 
+                     "is_first_childyes")
+
+# Create plots for WritingScore
+for (var in writing_score_vars) {
+  print(create_correlation_plot("gendermale", "WritingScore"))
+}
+
+# Create plots for ReadingScore
+for (var in reading_score_vars) {
+  print(create_correlation_plot(var, "ReadingScore", Project_1_data, (var, "vs ReadingScore")))
+}
+
+# Create plots for MathScore
+for (var in math_score_vars) {
+  print(create_correlation_plot(var, "MathScore", Project_1_data, (var, "vs MathScore")))
+}
+
+```
+
+
+
 

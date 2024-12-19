@@ -2,7 +2,7 @@
 title: "Reading Regression"
 author: "mk4995"
 date: "2024-12-15"
-output: html_document
+output: github_document
 ---
 
 ```{r setup, include=FALSE}
@@ -132,7 +132,7 @@ $$
 \text{reading_score} = \beta_0 + \beta_1 \cdot \text{gender} + \beta_2 \cdot \text{ethnic_group} + \beta_3 \cdot \text{lunch_type} + \beta_4 \cdot \text{test_prep} + \beta_5 \cdot \text{parent_marital_status} + \beta_6 \cdot \text{is_first_child}
 $$
 
-```{r}
+```{r eval = FALSE}
 # Forward model
 null_model = lm(reading_score ~ 1, data = scores_df1)
 forward_model = step(null_model, direction = "forward", scope = formula(mult.fit))
