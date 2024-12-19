@@ -35,27 +35,97 @@ source("scores_data.R")
 
 Preview data.
 ```{r}
-scores_dummies_df |>
-  head(10)
+scores_df |> 
+  gtsummary::tbl_summary() |> 
+  gtsummary::bold_labels() |> 
+  gtsummary::italicize_levels()
 ```
 
-All nominal variables have been changed to dummy variables. Ordinal variables (e.g. parent_educ) have been assigned factor levels. Numeric variables have not been changed.
-
-Basic GLM linear regression model for Math Scores.
-
-Using dummy variables.
+Visualize data.
 ```{r}
-covariates_dumm = scores_dummies_df |> 
-  select(-contains("score"), -id) |> 
-  colnames() |> 
-  paste(collapse = " + ")
+scores_df |> 
+  ggplot(aes(x = (math_score))) +
+  geom_boxplot() +
+  labs(
+    title = "Math Scores",
+    x = "Math Score (0-100)"
+  )
 
-math_formula_dumm = reformulate(covariates_dumm, response = "math_score")
+scores_df |> 
+  ggplot(aes(x = (math_score))) +
+  geom_density(fill = "cornflowerblue", color = "darkslateblue", alpha = 0.5) +
+  labs(
+    title = "Math Scores",
+    x = "Math Score (0-100)",
+    y = "Density"
+  )
 
-glm(math_formula_dumm, data = scores_dummies_df) |> 
-  broom::tidy() |>
-  filter(p.value < 0.05) #make sure to check variables with NA coefficients (due to multicollinearity)
+scores_df |> 
+  ggplot(aes(sample = (math_score))) +
+  geom_qq() + geom_qq_line() +
+  labs(
+    title = "Math Scores",
+    y = "Math Score (0-100)",
+    x = "Standard Normal Quantiles"
+  )
 ```
+
+Excluding outliers that are below Q1 - 1.5IQR.
+```{r}
+math_fivenum = fivenum(pull(scores_df, math_score))
+math_iqr = math_score_fivenum[[4]] - math_score_fivenum[[2]]
+# lower limit for outliers, no upper limit (Q1 + 1.5IQR = 106 > max=100)
+outlier_ll = math_fivenum[[2]] - math_iqr*1.5
+
+scores_df |> 
+  filter(math_score > outlier_ll) |> 
+  ggplot(aes(x = (math_score))) +
+  geom_boxplot() +
+  labs(
+    title = "Math Scores",
+    x = "Math Score (0-100)"
+  )
+
+scores_df |> 
+  filter(math_score > outlier_ll) |> 
+  ggplot(aes(sample = (math_score))) +
+  geom_qq() + geom_qq_line() +
+  labs(
+    title = "Math Scores",
+    y = "Math Score (0-100)",
+    x = "Standard Normal Quantiles"
+  )
+```
+
+Test potential transformations for better normality assumption.
+```{r}
+scores_df |> 
+  filter(math_score > outlier_ll) |> 
+  mutate(
+    tf_original = math_score,
+    tf_squared = math_score^2,
+    tf_power_1.2 = math_score^1.2,
+    tf_power_1.5 = math_score^1.5,
+    tf_power_1.3 = math_score^1.3,
+    tf_log = log(math_score)
+    ) |> 
+  pivot_longer(
+    cols = starts_with("tf_"),
+    names_to = "transformation",
+    values_to = "score",
+    names_prefix = "tf_"
+  ) |> 
+  ggplot(aes(sample = score)) +
+  geom_qq() +
+  geom_qq_line() +
+  facet_wrap(~transformation, scales = "free") +
+  labs(
+    title = "QQ Plots for Math Scores",
+    x = "Standard Normal Quantiles",
+    y = "Sample Quantiles"
+  )
+```
+
 
 Not using dummy variables.
 ```{r}
