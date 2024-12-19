@@ -22,7 +22,7 @@ source("scores_data.R")
 # scores_df = 
   # scores_df |> na.omit()
 
-scores_df |> 
+scores_df |> select(-id) |> 
   gtsummary::tbl_summary() |> 
   gtsummary::bold_labels() |> 
   gtsummary::italicize_levels()
@@ -44,12 +44,11 @@ scores_df |>
 scores_df |> 
   ggplot(aes(sample = (reading_score))) +
   geom_qq() + geom_qq_line()
+```
 
-scores_df |> 
-  filter(!(id == 33)) |> 
-  ggplot(aes(sample = reading_score)) +
-  geom_qq() + geom_qq_line()
+According to this, `reading_score` does not meet the normality assumptions because of values in the higher range. We can try a Box Cox transformation to adjust this.
 
+```{r}
 library(caret)
 
 # Create a Box-Cox transformation object
@@ -57,25 +56,31 @@ bc_transform <- BoxCoxTrans(scores_df$reading_score)  # Replace Area with your v
 
 # View the optimal lambda
 bc_transform$lambda
+```
 
+According to the Box-Cox transformation, the ideal lambda is 1.3. If we compare this to 2, we can see that the normality plot doesn't get much better - in fact, now the lower tails are worse. Based on this, we will move forward with the original `reading_score` variable.
+
+```{r}
 scores_df |> 
   ggplot(aes(x = (reading_score)^2)) +
   geom_boxplot()
 
-scores_df = 
-  scores_df |> 
-  mutate(reading_score_squared = (reading_score)^2) 
+scores_df |> 
+  ggplot(aes(sample = (reading_score)^2)) +
+  geom_qq() + geom_qq_line()
 ```
 
 ## Basic regression models
 
-Without other scores and no transformation:
+Without other scores:
 
 ```{r}
-reading_df = scores_df |> select(-c(id, math_score, writing_score))
+reading_full_df = scores_df |> select(-c(id, math_score, writing_score))
 
-reading_model = lm(reading_score ~ ., data = reading_df)
-summary(reading_model)
+reading_model = lm(reading_score ~ ., data = reading_full_df)
+reading_model_summary <- broom::tidy(reading_model) |> knitr::kable(digits = 3)
+
+reading_model |> summary()
 ```
 
 Significant coefficients:
@@ -87,7 +92,7 @@ Significant coefficients:
 - test_prepcompleted
 - parent_marital_statusmarried
 
-# Check spread of residuals.
+## Check spread of residuals.
 
 **RSE = 13.27**: Indicates the average difference betweeen observeed and fitted values.
 
@@ -97,46 +102,185 @@ About 26.09% of the variability in reading score is explained by the covariates.
 **Adj-R^2 = 0.2182**
 After penalizing for the predictors in the model that don't add anything useful, 21.82% of the variability in reading score is explained by the covariates.
 
-```{r}
-reading_transformed_df = 
-  reading_df |> 
-  mutate(reading_score_squared = reading_score^2) |> 
-  select(-reading_score)
+## Plotting models
 
-reading_transformed_model = lm(reading_score_squared ~ ., data = reading_transformed_df)
-summary(reading_transformed_model)
+Looking at the plots below, we can see that the residuals generally follow normality, homoscedascity and mean zero looking at the diagnostic plots.
+
+```{r}
+par(mfrow=c(2,2))
+plot(reading_model)
 ```
 
-## Creating optimal models
+# Creating optimal models
 
 Start regression procedures without the other score variables against `reading_score`.
 
+In order to use these procedures, we must remove NAs from the dataset.
 ```{r}
 # Does not contain id, math score, wrting score, or NAs
 reading_df = scores_df |> na.omit() |> select(-c(id, math_score, writing_score))
 ```
 
+We can check the normality assumptions here.
+```{r eval=FALSE}
+reading_df |> 
+  ggplot(aes(sample = (reading_score))) +
+  geom_qq() + geom_qq_line()
+
+# Extract residuals from your model
+residuals <- residuals(reading_model)
+
+# Extract fitted values
+fitted_values <- fitted(reading_model)
+
+# Identify the index of the extreme residual
+outlier_index <- which.max(residuals)
+
+# Filter that row out
+# reading_df = reading_df[-outlier_index, ]
+
+```
+
+This looks much more normal than the other variables. Let's try removing the outlier on the far upper right:
+
+
 Use forward and backward model selection and test-based procedures.
 
+## Backward model
 ```{r}
 # Backward model
 mult.fit = lm(reading_score ~ ., data = reading_df)
 summary(mult.fit)
 backward_model = step(mult.fit, direction = "backward")
-summary(backward_model)
+
+backward_model |> summary() |> broom::tidy() |> knitr::kable(digits = 5)
 ```
 
 The resulting model is:
 
-$$
-\text{reading_score} = \beta_0 + \beta_1 \cdot \text{gender} + \beta_2 \cdot \text{ethnic_group} + \beta_3 \cdot \text{lunch_type} + \beta_4 \cdot \text{test_prep} + \beta_5 \cdot \text{parent_marital_status} + \beta_6 \cdot \text{is_first_child}
-$$
+reading_score ~ gender + ethnic_group + lunch_type + test_prep + parent_marital_status + is_first_child
 
+The following coeffients from that model are significant:
+- gendermale
+- ethnic_groupE
+- lunch_typestandard
+- test_prepcompleted
+- parent_marital_statusmarried
+
+## Forward model
 ```{r eval = FALSE}
 # Forward model
-null_model = lm(reading_score ~ 1, data = scores_df1)
+null_model = lm(reading_score ~ 1, data = reading_df)
 forward_model = step(null_model, direction = "forward", scope = formula(mult.fit))
 summary(forward_model)
 ```
+
+The resulting model is: 
+
+reading_score ~ lunch_type + gender + test_prep + ethnic_group + parent_marital_status + is_first_child
+
+The following coefficients from that model are significant:
+- lunch_typestandard
+- gendermale
+- test_prepcompleted
+- ethnic_groupE
+- parent_marital_statusmarried
+
+|Model (without other scores) |R^2            |Adjusted R^2       |RMSE          |
+|-------------------------------|---------------|------------------|---------------|
+|**Full model**: reading_score ~ lunch_type + gender + test_prep + ethnic_group + parent_marital_status + practice_sport + is_first_child + nr_siblings + transport_mean + wkly_study_hours   |0.2609     |0.2182   |13.27    |
+|**Forward model**: reading_score ~ lunch_type + gender + test_prep + ethnic_group + parent_marital_status + is_first_child    |0.2452   |0.2206   |13.25    |
+|**Backward model**: reading_score ~ gender + ethnic_group + lunch_type + test_prep + parent_marital_status + is_first_child |0.2452    |0.2206   |13.25   |
+
+
+# Including other scores
+
+```{r}
+reading_scores = scores_df |> select(-id)
+```
+
+## Full model
+
+Start by running a full model of all the variables, as well as writing and math scores.
+
+```{r}
+reading_scores_full = lm(reading_score ~ ., data = reading_scores)
+reading_scores_full |> summary() |> broom::tidy() |> knitr::kable()
+```
+
+Significant coefficients:
+- gendermale
+- ethnic_groupD
+- pareent_educsome_college
+- lunch_typestandard
+- test_prepcompleted
+- practice_sportregularly
+- math_score
+- writing_score
+
+We can also look at the residuals to make sure assumptions are met.
+
+```{r}
+par(mfrow=c(2,2))
+plot(reading_scores_full)
+```
+
+
+## Backward model
+
+```{r}
+reading_scores2 = reading_scores |> na.omit()
+read2_model = lm(reading_score ~ ., data = reading_scores2)
+
+backward_scores_model = step(read2_model, direction = "backward")
+summary(backward_scores_model)
+```
+
+The resulting model is:
+reading_score ~ ethnic_group + parent_educ + lunch_type + test_prep + practice_sport + math_score + writing_score
+
+Significant coefficients:
+- ethnic_groupD
+- parent_educsome college
+- lunch_typestandard
+- test_prepcompleted
+- practice_sport_regularly
+- math_score
+- writing_score
+
+## Forward model
+
+```{r}
+reading_score_null = lm(reading_score ~ 1, data = reading_scores2)
+forward_model = step(reading_score_null, direction = "forward", scope = formula(read2_model))
+
+forward_model |> summary()
+```
+
+Formula: reading_score ~ writing_score + math_score + practice_sport + test_prep + ethnic_group + parent_educ + lunch_type
+
+Significant coefficients:
+- writing_score
+- math_score
+- practice_sportregularly
+- test_prepcompleted
+- ethnic_groupD
+- parent_educsome college
+- lunch_typestandard
+
+
+|Model (WITH other scores) |R^2            |Adjusted R^2       |RMSE          |
+|-------------------------------|---------------|------------------|---------------|
+|**Full model**: reading_score ~ lunch_type + gender + test_prep + ethnic_group + parent_marital_status + practice_sport + is_first_child + nr_siblings + transport_mean + wkly_study_hours + writing_score + math_score   |0.9299     |0.9254   |4.098    |
+|**Forward model**: reading_score ~ writing_score + math_score + practice_sport + test_prep + ethnic_group + parent_educ + lunch_type    |0.2452   |0.2206   |13.25    |
+|**Backward model**: reading_score ~ ethnic_group + parent_educ + lunch_type + test_prep + practice_sport + math_score + writing_score |0.9294    |0.9269   |4.057   |
+
+
+Since the adjusted R^2 of the models including writing and math scores are much higher than the adjusted R^2 of those without, we will proceed using these. Moreover, the lower RMSE values leads us to make the same conclusion.
+
+# Interaction
+
+
+
 
 
