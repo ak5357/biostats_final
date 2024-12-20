@@ -25,7 +25,7 @@ scores_df = read_csv("data/Project_1_data.csv") |>
     ethnic_group = as.factor(str_replace(ethnic_group, "group ", "")),
     parent_educ = factor(parent_educ, 
                          levels = c("some high school", "high school", "some college",
-                                    "associate's degree", "backelor's degree", "master's degree")),
+                                    "associates degree", "bachelors degree", "masters degree")),
     test_prep = factor(test_prep,
                        levels = c("none", "completed")),
     practice_sport = factor(practice_sport,
