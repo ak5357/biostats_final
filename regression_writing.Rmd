@@ -11,9 +11,10 @@ library(dplyr)
 library(ggplot2)
 library(patchwork)
 library(tidyverse)
+library(broom)
 ```
 
-## Data Preparation
+# Data Preparation
 
 ```{r load-data, echo=FALSE}
 # Load the dataset
@@ -22,6 +23,8 @@ scores_df |>
   gtsummary::tbl_summary() |> 
   gtsummary::bold_labels() |> 
   gtsummary::italicize_levels()
+
+pairs(scores_df)
 ```
 
 ## Visualize the distribution of writing_score
@@ -36,11 +39,12 @@ scores_df |>
   ggplot(aes(sample = (writing_score))) +
   geom_qq() + geom_qq_line()
 ```
+
 Based on this plot, we see a roughly straight diagonal, but deviations at the tails. This could indicate a potential issue with normality.
 
-We can apply a logarithmic or a Box-Cox transformation to solve this issue. Let's try both and pick the one with a lower adjusted R^2 value and a lower AIC.
+We can attempt a Box-Cox transformation to solve this issue. 
 
-```{r, echo=FALSE}
+```{r}
 # Load required library
 library(caret)
 
@@ -52,133 +56,90 @@ table(scores_df$gendermale)
 
 # Box-Cox Transformation
 boxcox_obj <- BoxCoxTrans(scores_df$writing_score)  
-scores_df$writing_score_boxcox <- predict(boxcox_obj, newdata = scores_df$writing_score)
 
-# Log Transformation
-scores_df$writing_score_log <- log(scores_df$writing_score + 1)  # Add 1 to avoid log(0)
-
-# Build models for both transformations
-model_boxcox <- lm(writing_score_boxcox ~ ., data = scores_df |> select(-c(id, writing_score_log, writing_score)))
-model_log <- lm(writing_score_log ~ ., data = scores_df |> select(-c(id, writing_score_boxcox, writing_score)))
-
-# Compare Normality of Residuals
-par(mfrow = c(2, 2))
-
-# Box-Cox Residuals
-plot(model_boxcox, which = 2, main = "Q-Q Plot: Box-Cox Residuals")
-
-# Log Residuals
-plot(model_log, which = 2, main = "Q-Q Plot: Log Residuals")
-
-# Compare AIC and R-squared for both models
-cat("Box-Cox Model AIC:", AIC(model_boxcox), "\n")
-cat("Log Model AIC:", AIC(model_log), "\n")
-
-cat("Box-Cox Model Adjusted R-squared:", summary(model_boxcox)$adj.r.squared, "\n")
-cat("Log Model Adjusted R-squared:", summary(model_log)$adj.r.squared, "\n")
+# View the optimal lambda for Box-Cox transformation
+optimal_lambda <- boxcox_obj$lambda
+cat("Optimal Lambda for Box-Cox Transformation:", optimal_lambda, "\n")
 ```
-Based on the results:
+The optimal lambda is 1.3, which is close to 1, which means a transformation is not necessary. If the transformation does not significantly improve predictive accuracy, it may not be worthwhile.
 
-Log Model AIC (-614.1538) is significantly lower than the Box-Cox Model AIC (2739.218), indicating the log model has a better fit.
+We can proceed without a transformation.
 
-However, Box-Cox Model Adjusted R-squared (0.9492) is higher than the Log Model Adjusted R-squared (0.8741), suggesting the Box-Cox model explains more variability in the data.
-
-Given the substantial difference in AIC (a strong measure of model fit) and the adjusted R-squared being reasonably high for the log model, the log model appears to be the better choice overall for both predictive power and fit.
-
-## Regression Model
-
-```{r regression-model, echo=FALSE}
-# Final dataset with log-transformed writing_score
-final_data <- scores_df |> select(-c(id, writing_score_boxcox))
-
-# Build the regression model with the log-transformed `writing_score`
-final_log_model <- lm(writing_score_log ~ ., data = final_data)
-
-# Model summary
-summary(final_log_model)
-
-# Residual diagnostics
-par(mfrow = c(2, 2))
-plot(final_log_model)
-```
+# Basic Regression Model
 ```{r, echo=FALSE}
-# Evaluate normality and homoscedasticity
-library(lmtest)
+writing_df = scores_df |> na.omit() |> select(-c(id, math_score, reading_score))
 
-# Breusch-Pagan Test for homoscedasticity
-bptest(final_log_model)
+writing_model = lm(writing_score ~ ., data = writing_df)
 
-# Shapiro-Wilk Test for residual normality
-shapiro.test(residuals(final_log_model))
+writing_model_summary <- broom::tidy(writing_model) |> knitr::kable(digits = 3)
+
+writing_model |> summary()
+
+par(mfrow=c(2,2))
+plot(writing_model)
 ```
-
-## Basic Regression Model
-```{r, echo=FALSE}
-# Prepare dataset by excluding boxcox and log transformations
-writing_df_no_transform = scores_df |> 
-  select(-c(id, math_score, reading_score, writing_score_boxcox, writing_score_log))
-
-# Fit a regression model with only the original predictors
-writing_model_no_transform = lm(writing_score ~ ., data = writing_df_no_transform)
-
-# Summarize the model
-summary(writing_model_no_transform)
-
-```
-
 
 Significant coefficients:
 
 - (Intercept) (p<2e−16)
 - gendermale (p=5.56e−12)
-- ethnic_groupE (p=0.02133)
-- ethnic_groupD (p=0.04524)
-- lunch_typestandard (p=1.13e−11)
-- test_prepcompleted (p=1.66e−09)
-- parent_marital_statusmarried (p=0.00299)
-- is_first_childyes (p=0.02135)
+- ethnic_groupE (p=0.008673)
+- ethnic_groupD (p=0.016531)
+- parent_educsome college (p=0.010898)
+- parent_educassociates degree (p=0.000239)
+- parent_educbachelors degree (p=2.62e-06)
+- parent_educmasters degree (p=1.10e-06)
+- lunch_typestandard (p=<2e-16)
+- test_prepcompleted (p=3.09e-14)
+- parent_marital_statusmarried (p=0.000561)
+- wkly_study_hours5-10 (p=0.026048)
 
 # Residual Analysis
 
 **RSE = 12.65**: the RSE represents the average difference betweeen observed and fitted values.
 
-**R^2 = 0.3537**: The R^2 value represents the fact that 35.37% of the variability in writing score is explained by the covariates.
+**R^2 = 0.3634**: The R^2 value represents the fact that 36.34% of the variability in writing score is explained by the covariates.
 
-**Adj-R^2 = 0.3164**: Removing predictors in the model that don't add significance, 31.64% of the variability in writing score is explained by the selected covariates.
+**Adj-R^2 = 0.3385**: Removing predictors in the model that don't add significance, 33.85% of the variability in writing score is explained by the selected covariates.
 
-## Create a model with the significant variables
+### Create a model with the significant variables
 ```{r, echo=FALSE}
-# Subset the data to include only the significant variables
-writing_df_significant = scores_df |> 
-  select(writing_score, gender, ethnic_group, lunch_type, test_prep, parent_marital_status, is_first_child)
+# Step 1: Subset the data to include only significant variables
+writing_df_significant <- writing_df |>
+  na.omit() |>
+  select(
+    writing_score, gender, ethnic_group, lunch_type, test_prep, parent_educ, 
+    parent_marital_status, wkly_study_hours
+  )
 
-# Convert categorical variables to factors
+# Step 2: Convert categorical variables to factors
 writing_df_significant <- writing_df_significant |> 
   mutate(
     gender = as.factor(gender),
     ethnic_group = as.factor(ethnic_group),
     lunch_type = as.factor(lunch_type),
     test_prep = as.factor(test_prep),
+    parent_educ = as.factor(parent_educ),
     parent_marital_status = as.factor(parent_marital_status),
-    is_first_child = as.factor(is_first_child)
+    wkly_study_hours = as.factor(wkly_study_hours)
   )
 
-# Verify factor levels
+# Step 3: Verify that variables are correctly treated as factors
 sapply(writing_df_significant, class)
 
-# Fit the regression model
+# Step 4: Fit the regression model using only significant variables
 significant_model <- lm(
   writing_score ~ gender + ethnic_group + lunch_type + test_prep + 
-                  parent_marital_status + is_first_child, 
+                  parent_educ + parent_marital_status + wkly_study_hours, 
   data = writing_df_significant
 )
 
-# Summarize the model
+# Step 5: Summarize the model
 summary(significant_model)
-
 ```
-
-## Model Selection
+Model using only significant coefficients: **writing_score ~ gender + ethnic_group + lunch_type +  test_prep + parent_educ + parent_marital_status + wkly_study_hours**
+    
+# Model Selection
 
 ### Diagnostics
 ```{r, echo=FALSE}
@@ -192,62 +153,212 @@ shapiro.test(residuals(significant_model))
 # Check homoscedasticity
 library(lmtest)
 bptest(significant_model)
+
+writing_df |> 
+  ggplot(aes(sample = (writing_score))) +
+  geom_qq() + geom_qq_line()
 ```
 
 ### Backward Model
 ```{r, echo=FALSE}
-# Backward model selection
-backward_model <- step(significant_model, direction = "backward")
-summary(backward_model)
+# Backward model
+mult.fit = lm(writing_score ~ ., data = writing_df)
+summary(mult.fit)
+backward_model = step(mult.fit, direction = "backward")
 ```
-
+Backward Model: **writing_score ~ gender + ethnic_group + parent_educ + lunch_type +  test_prep + parent_marital_status + is_first_child**
+    
 ### Forward Model
 ```{r, echo=FALSE}
+library(dplyr)
 # Remove rows with missing values
-writing_df_significant <- writing_df_significant |> 
-  na.omit()
+writing_df <- writing_df |> na.omit()
 
 # Verify the number of rows after removing missing values
-nrow(writing_df_significant)
+nrow(writing_df)
 
 # Define the null model
-null_model <- lm(writing_score ~ 1, data = writing_df_significant)
+null_model <- lm(writing_score ~ 1, data = writing_df)
 
 # Perform forward selection
-forward_model <- step(null_model, direction = "forward", scope = formula(significant_model))
+forward_model = step(null_model, direction = "forward", scope = formula(mult.fit))
 summary(forward_model)
 ```
+Forward model: **writing_score ~ lunch_type + gender + test_prep + ethnic_group + parent_educ + parent_marital_status + is_first_child**
+    
 
-The resulting model is:
-$$
-\text{writing_score} = \beta_0 + \beta_1 \cdot \text{test_prepcompleted} + \beta_2 \cdot \text{gendermale} + \beta_3 \cdot \text{lunch_typestandard} + \beta_4 \cdot \text{ethnic_groupD} + \beta_5 \cdot \text{ethnic_groupE} + \beta_6 \cdot \text{parent_marital_statusmarried} + \beta_7 \cdot \text{parent_marital_statuswidowed}
-$$
-## Fit the final regression model
-
+# Select Final Model
 ```{r}
-final_model <- lm(
-  writing_score ~ test_prep + gender + lunch_type + 
-                  ethnic_group + parent_marital_status, 
-  data = writing_df_significant
+# Extract Adjusted R²
+adj_r2_forward <- summary(forward_model)$adj.r.squared
+adj_r2_backward <- summary(backward_model)$adj.r.squared
+adj_r2_sig <- summary(significant_model)$adj.r.squared
+
+# Extract AIC
+aic_forward <- AIC(forward_model)
+aic_backward <- AIC(backward_model)
+aic_significant <- AIC(significant_model)
+
+# Cross-Validation for RMSE
+library(caret)
+
+# Cross-validate Forward Model
+cv_forward <- train(
+  formula(forward_model),
+  data = writing_df,
+  method = "lm",
+  trControl = trainControl(method = "cv", number = 10)
 )
 
-# Summarize the final model
+# Cross-validate Backward Model
+cv_backward <- train(
+  formula(backward_model),
+  data = writing_df,
+  method = "lm",
+  trControl = trainControl(method = "cv", number = 10)
+)
+
+# Cross-validate Sig Model
+cv_significant <- train(
+  formula(significant_model),
+  data = writing_df,
+  method = "lm",
+  trControl = trainControl(method = "cv", number = 10)
+)
+
+rmse_forward <- cv_forward$results$RMSE
+rmse_backward <- cv_backward$results$RMSE
+rmse_significant <- cv_significant$results$RMSE
+
+# Create a Comparison Table
+comparison_table <- data.frame(
+  Model = c("Forward", "Backward", "Significant"),
+  Adjusted_R2 = c(adj_r2_forward, adj_r2_backward, adj_r2_sig),
+  AIC = c(aic_forward, aic_backward, aic_significant),
+  RMSE = c(rmse_forward, rmse_backward, rmse_significant)
+)
+
+print(comparison_table)
+
+# Decide the Final Model
+if (aic_forward < aic_backward & aic_forward < aic_significant & 
+    rmse_forward < rmse_backward & rmse_forward < rmse_significant) {
+  final_model <- forward_model
+  cat("Final Model: Forward Selection\n")
+} else if (aic_backward < aic_significant & rmse_backward < rmse_significant) {
+  final_model <- backward_model
+  cat("Final Model: Backward Selection\n")
+} else {
+  final_model <- significant_model
+  cat("Final Model: Significant Model\n")
+}
+
+# Print Summary of Final Model
 summary(final_model)
 ```
+
+Current best model is: **writing_score ~ gender + ethnic_group + parent_educ +  lunch_type + test_prep + parent_marital_status + is_first_child**
+
 
 ## Diagnostics
 ```{r}
 # Residual diagnostics
 par(mfrow = c(2, 2))
-plot(final_model)
+plot(backward_model)
 
 # Normality of residuals
-shapiro.test(residuals(final_model))
+shapiro.test(residuals(backward_model))
 
 # Homoscedasticity test
 library(lmtest)
-bptest(final_model)
+bptest(backward_model)
+
+# Define the cross-validation method (10-fold CV)
+train_control <- trainControl(method = "cv", number = 10)
+
+# Perform cross-validation on the final model
+cv_final <- train(
+  formula(backward_model),  # Extract formula from the final model
+  data = writing_df,
+  method = "lm",  # Linear regression
+  trControl = train_control
+)
+
+# Display cross-validation results
+print(cv_final)
+
+ # Extract performance metrics
+cat("Cross-Validation Metrics for Final Model:\n")
+cat("RMSE:", cv_final$results$RMSE, "\n")
+cat("R²:", cv_final$results$Rsquared, "\n")
+cat("MAE:", cv_final$results$MAE, "\n")
 ```
-<!-- $$ -->
-<!-- \text{writing_score} = \beta_0 + \beta_1 \cdot \text{gender} + \beta_2 \cdot \text{ethnic_group} + \beta_3 \cdot \text{lunch_type} + \beta_4 \cdot \text{test_prep} + \beta_5 \cdot \text{parent_marital_status} + \beta_6 \cdot \text{is_first_child} -->
-<!-- $$ -->
+
+# Interactions
+#### reduced, output hidden, to allow for reasonable run time, was originally run with all variables as interaction terms (*)
+```{r, echo=FALSE}
+
+#model_interaction_all <- lm(writing_score ~ gender * ethnic_group * parent_educ * lunch_type * test_prep  *  parent_marital_status * wkly_study_hours * practice_sport, data = writing_df)
+#summary(model_interaction_all)
+```
+After using this model to test for all variables in combination, there were no interactions that had a p-value less than 0.05. A few had a p-value less than 0.1, but these did not improve the model. We can try to test an interaction that had a small effect on the reading score, which has potential to be related to writing score based on the nature of standardized testing. 
+
+```{r}
+#Test an interaction that affected reading score
+model_interaction <- lm(writing_score ~ gender + ethnic_group + parent_educ + lunch_type + test_prep + is_first_child + parent_marital_status * wkly_study_hours, data = writing_df)
+summary(model_interaction)
+
+# Tidy the model summary and filter by p-value
+significant_terms <- tidy(model_interaction, conf.int = TRUE) %>%
+  filter(p.value < 0.05)
+
+# View significant terms
+print(significant_terms)
+```
+
+Here we see that the interaction of parent marital status and weekly study hours is not significant based on p-value. Let's compare R^2 values.
+
+```{r}
+# Extract adjusted R^2 for both models
+adj_r2_all <- summary(backward_model)$adj.r.squared
+adj_r2_reduced <- summary(model_interaction)$adj.r.squared
+
+# Print results
+cat("Backward Model: Adjusted R^2 =", adj_r2_all, "\n")
+cat("Model Interaction Based on Reading: Adjusted R^2 =", adj_r2_reduced, "\n")
+
+if (adj_r2_all > adj_r2_reduced) {
+  cat("Best Model by Adjusted R^2: backward_model\n")
+} else {
+  cat("Best Model by Adjusted R^2: model_interaction\n")
+}
+
+```
+The adjusted R^2 value of the original model we selected, without interactions, is 0.3223164 . The value for the interaction model is 0.3202919. That means incorporating this interaction does not explain more variability.
+
+Therefore the final model for writing score is the backward model: 
+
+**writing_score ~ gender + ethnic_group + parent_educ + lunch_type + test_prep + parent_marital_status + is_first_child**
+
+# Compare With Other Scores
+
+Now we will add the other scores, math and reading, to see if we can use them to predict any patterns in writing.
+
+```{r}
+all_scores = scores_df |> select(-id) |> na.omit()
+
+all_scores_combined = lm(writing_score ~ math_score + reading_score + gender + ethnic_group + parent_educ + lunch_type + test_prep + parent_marital_status + is_first_child, data = all_scores)
+
+writing_final_model = lm(writing_score ~ gender + ethnic_group + parent_educ + lunch_type + test_prep + parent_marital_status + is_first_child, data = writing_df)
+
+mse_writing_scores = mean((all_scores$writing_score - predict(all_scores_combined, newdata = all_scores))^2)
+
+mse_writing = mean((all_scores$writing_score - predict(writing_final_model, newdata = all_scores))^2)
+
+tibble(
+  model = c("Writing with scores", "Writing without scores"),
+  MSE = c(mse_writing_scores, mse_writing)
+) |> knitr::kable()
+```
+
+The model that combines scores has far superior predictive performance compared to the "Writing without Scores" model. The large gap in MSE indicates that the variables or interactions included in the combined scores model are critical for explaining the variability in the writing scores. The MSE of the "Writing without Scores" model is many times larger than that of the "Writing with Scores" model, highlighting the significant difference in predictive accuracy between the two models.
