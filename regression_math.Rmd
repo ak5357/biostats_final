@@ -7,6 +7,8 @@ output: github_document
 # IMPORT LIBRARIES
 library(dplyr)
 library(ggplot2)
+library(caret)
+library(stringr)
 
 # DEFAULT SETTINGS FOR PLOTS
 knitr::opts_chunk$set(
@@ -28,6 +30,10 @@ theme_set(
 )
 ```
 
+# Data Exploration
+
+## Explore Predictors
+
 Import data.
 ```{r message = FALSE}
 source("scores_data.R")
@@ -40,6 +46,8 @@ scores_df |>
   gtsummary::bold_labels() |> 
   gtsummary::italicize_levels()
 ```
+
+## Deciding whether `math_score` needs to be transformed.
 
 Visualize data.
 ```{r}
@@ -73,7 +81,7 @@ scores_df |>
 Excluding outliers that are below Q1 - 1.5IQR.
 ```{r}
 math_fivenum = fivenum(pull(scores_df, math_score))
-math_iqr = math_score_fivenum[[4]] - math_score_fivenum[[2]]
+math_iqr = math_fivenum[[4]] - math_fivenum[[2]]
 # lower limit for outliers, no upper limit (Q1 + 1.5IQR = 106 > max=100)
 outlier_ll = math_fivenum[[2]] - math_iqr*1.5
 
@@ -97,7 +105,9 @@ scores_df |>
   )
 ```
 
-Test potential transformations for better normality assumption.
+### QQ Plots
+
+Test potential transformations for better normality assumption. It seems none of the transformations significantly improve the normality of the data.
 ```{r}
 scores_df |> 
   filter(math_score > outlier_ll) |> 
@@ -126,17 +136,374 @@ scores_df |>
   )
 ```
 
+### Box Cox Transformation
 
-Not using dummy variables.
+When using a Box Cox Transformation to potentially improve the normality of the data, we can see that it is not able to estimate a lambda and thus does not apply a transformation. As such, I will continue with the original `math_score` data for the model.
 ```{r}
-covariates = scores_df |> 
-  select(-contains("score"), -id) |> 
-  colnames() |> 
-  paste(collapse = " + ")
-
-math_formula = reformulate(covariates, response = "math_score")
-
-glm(math_formula, data = scores_df) |> 
-  broom::tidy() |>
-  filter(p.value < 0.05)
+# Create a Box-Cox transformation object
+BoxCoxTrans(scores_df$math_score)
 ```
+
+# Building Regression Models
+
+## Main Effects Model
+
+```{r}
+math_model = scores_df |> 
+  select(-c(id, reading_score, writing_score)) |> 
+  lm(math_score ~ ., data = _)
+
+math_model |> 
+  broom::tidy() |> 
+  filter(p.value < 0.05) |> 
+  knitr::kable(digits = 10, caption = "Full Model (no other scores) Coefficients")
+```
+
+**Significant Predictors**
+
+* gendermale
+* ethnic_groupE
+* parent_educassociates degree
+* parent_educbachelors degree
+* parent_educmasters degree
+* lunch_typestandard
+* test_prepcompleted
+* parent_marital_statusmarried
+* parent_marital_statuswidowed
+* wkly_study_hours5-10
+
+## Check residuals
+```{r}
+math_model |> summary()
+```
+
+**RSE = 13.52**: Indicates the average difference betweeen observeed and fitted values.
+
+**R^2 = 0.3221**
+About 32.21% of the variability in reading score is explained by the covariates.
+
+**Adj-R^2 = 0.2956**
+After penalizing for the predictors in the model that don't add anything useful, 29.56% of the variability in reading score is explained by the covariates.
+
+```{r}
+par(mfrow = c(2,2))
+plot(math_model)
+```
+
+## Stepwise Predictor Selection
+
+### Backwards Selection
+
+Update math model to only include significant predictors.
+```{r}
+math_model_bk = scores_df |> 
+  select(-c(id, reading_score, writing_score)) |> 
+  drop_na() |> 
+  lm(math_score ~ ., data = _) |> 
+  step(direction = "backward")
+
+math_model_bk |> summary()
+```
+
+**Resulting Model**
+
+math_score ~ gender + ethnic_group + parent_educ + 
+    lunch_type + test_prep + parent_marital_status + nr_siblings + 
+    wkly_study_hours
+    
+**Significant Predictors**
+
+* gendermale
+* ethnic_groupE
+* parent_educassociates degree
+* parent_educbachelors degree
+* parent_educmasters degree
+* lunch_typestandard
+* test_prepcompleted
+* parent_marital_statusmarried
+* parent_marital_statuswidowed
+* wkly_study_hours5-10
+
+**RSE = 13.5**: Indicates the average difference betweeen observeed and fitted values.
+
+**R^2 = 0.32**
+About 32% of the variability in reading score is explained by the covariates.
+
+**Adj-R^2 = 0.2985**
+After penalizing for the predictors in the model that don't add anything useful, 29.85% of the variability in reading score is explained by the covariates.
+
+```{r}
+par(mfrow = c(2,2))
+plot(math_model_bk)
+```
+
+### Forward Selection
+
+Update math model to only include significant predictors.
+```{r}
+null_math_model = scores_df |> 
+  select(-c(id, reading_score, writing_score)) |> 
+  drop_na() |> 
+  lm(math_score ~ 1, data = _)
+
+math_model_fw = null_math_model |> 
+  step(direction = "forward", scope = formula(math_model))
+
+math_model_fw |> summary()
+
+math_model_fw |> 
+  broom::tidy() |> 
+  filter(p.value < 0.05) |> 
+  pull(term) |> 
+  paste(collapse = "* ")
+```
+
+**Resulting Model**
+
+math_score ~ gender + ethnic_group + parent_educ + 
+    lunch_type + test_prep + parent_marital_status + practice_sport + 
+    is_first_child + nr_siblings + transport_means + wkly_study_hours
+
+**Significant Predictors**
+
+* lunch_typestandard
+* ethnic_groupE
+* test_prepcompleted
+* gendermale
+* parent_educassociates degree
+* parent_educbachelors degree
+* parent_educmasters degree
+* parent_marital_statusmarried
+* parent_marital_statuswidowed
+* wkly_study_hours5-10
+
+**RSE = 13.52**: Indicates the average difference betweeen observeed and fitted values.
+
+**R^2 = 0.3221**
+About 32.21% of the variability in reading score is explained by the covariates.
+
+**Adj-R^2 = 0.2956**
+After penalizing for the predictors in the model that don't add anything useful, 29.56% of the variability in reading score is explained by the covariates.
+
+```{r}
+par(mfrow = c(2,2))
+plot(math_model_bk)
+```
+
+# Interaction
+
+## Run Interaction Plots
+
+One example here, the rest are in code.
+```{r}
+math_df = scores_df |> 
+  select(-c(id, reading_score, writing_score)) |> 
+  drop_na()
+
+# Ethnic Group
+interaction.plot(
+  x.factor = math_df$lunch_type,
+  trace.factor = math_df$ethnic_group,
+  response = math_df$math_score,
+  col = rainbow(length(unique(math_df$ethnic_group))),
+  xlab = "Lunch Type",
+  trace.label = "Ethnic Group",
+  ylab = "Math Score",
+  main = "Interaction: Lunch Type x Ethnic Group"
+)
+```
+
+**Interactions found**
+
+* gender, nr_siblings
+* ethnic_group, parent_educ
+* ethnic_group, lunch_type
+* ethnic_group, test_prep
+* ethnic_group, parent_marital_status
+* ethnic_group, practice_sport
+* ethnic_group, is_first_child
+* ethnic_group, nr_siblings
+* ethnic_group, transport_means
+* ethnic_group, wkly_study_hours
+* parent_educ, lunch_type
+* parent_educ, test_prep
+* parent_educ, parent_marital_status
+* parent_educ, practice_sport
+* parent_educ, is_first_child
+* parent_educ, nr_siblings
+* parent_educ, transport_means
+* parent_educ, wkly_study_hours
+* parent_marital_status, practice_sport
+* parent_marital_status, is_first_child
+* parent_marital_status, nr_siblings
+* parent_marital_status, transport_means
+* parent_marital_status, wkly_study_hours
+* practice_sport, is_first_child
+* practice_sport, nr_siblings
+* practice_sport, transport_means
+* practice_sport, wkly_study_hours
+* is_first_child, nr_siblings
+* is_first_child, wkly_study_hours
+* nr_siblings, transport_means
+* nr_siblings, wkly_study_hours
+* transport_means, wkly_study_hours
+
+## Identify significant interactions
+```{r}
+interaction_pairs = c("gender, nr_siblings", "ethnic_group, parent_educ", "ethnic_group, lunch_type", "ethnic_group, test_prep", "ethnic_group, parent_marital_status", "ethnic_group, practice_sport", "ethnic_group, is_first_child", "ethnic_group, nr_siblings", "ethnic_group, transport_means", "ethnic_group, wkly_study_hours", "parent_educ, lunch_type", "parent_educ, test_prep", "parent_educ, parent_marital_status", "parent_educ, practice_sport", "parent_educ, is_first_child", "parent_educ, nr_siblings", "parent_educ, transport_means", "parent_educ, wkly_study_hours", "parent_marital_status, practice_sport", "parent_marital_status, is_first_child", "parent_marital_status, nr_siblings", "parent_marital_status, transport_means", "parent_marital_status, wkly_study_hours", "practice_sport, is_first_child", "practice_sport, nr_siblings", "practice_sport, transport_means", "practice_sport, wkly_study_hours", "is_first_child, nr_siblings", "is_first_child, wkly_study_hours", "nr_siblings, transport_means", "nr_siblings, wkly_study_hours", "transport_means, wkly_study_hours")
+
+
+get_model_formula = function(model){
+  model_formula_char = as.character(formula(math_model))
+  model_formula_str = paste(
+    model_formula_char[[2]],
+    model_formula_char[[1]],
+    model_formula_char[[3]])
+  
+  return(model_formula_str)
+}
+
+math_model_formula_str = get_model_formula(math_model)
+
+# Significant Interactions List
+sig_int = list()
+
+for(i in 1:length(interaction_pairs)){
+  interaction_term = interaction_pairs[[i]] |> 
+    str_replace(", ", " * ")
+  new_formula = paste(math_model_formula_str, "+", interaction_term) |> 
+    formula()
+  new_model = lm(new_formula, data = math_df)
+  
+  significant_interactions = new_model |> 
+    broom::tidy() |> 
+    filter(str_detect(term, ":")) |> 
+    filter(p.value < 0.05)
+  
+  if (nrow(significant_interactions) > 0){
+    print(interaction_pairs[[i]])
+    sig_int = append(sig_int, interaction_term)
+  }
+}
+```
+
+# Modeling with Interactions
+
+## Full Model with Interactions
+```{r}
+full_model_formula = 
+  paste(math_model_formula_str, "+", paste(sig_int, collapse = " + ")) |> 
+  formula()
+full_model = lm(full_model_formula, data = math_df)
+
+full_model |> summary()
+```
+
+## Backwards Model with Interactions
+```{r}
+backward_model = 
+  math_df |> 
+  lm(full_model_formula, data = _) |> 
+  step(direction = "backward")
+
+backward_model |> summary()
+```
+
+## Forward Model with Interactions
+```{r}
+null_model = math_df |> 
+  lm(math_score ~ 1, data = _)
+
+forward_model = null_model |> 
+  step(direction = "forward", scope = full_model_formula)
+```
+
+
+# Model Summaries
+```{r}
+models_list = list(math_model, math_model_bk, math_model_fw, full_model, backward_model, forward_model)
+model_names = c("Full Model", "Backward Model", "Forward Model", "Full Model with Interactions", "Backward Model with Interactions", "Forward Model with Interactions")
+
+model_summaries_df = tibble(
+  name = character(),
+  formula = character(),
+  r.squared = numeric(),
+  adj.r.squared = numeric(),
+  rmse = numeric()
+)
+
+for(i in 1:length(models_list)){
+  model_summary = summary(models_list[[i]])
+  
+  new_row = tibble(
+    name = model_names[[i]],
+    formula = get_model_formula(models_list[[i]]),
+    r.squared = model_summary$r.squared,
+    adj.r.squared = model_summary$adj.r.squared,
+    rmse = sqrt(mean(model_summary$residuals^2))
+  )
+  
+  model_summaries_df = bind_rows(model_summaries_df, new_row)
+}
+
+# Output summary of models
+model_summaries_df |> 
+  arrange(-adj.r.squared, rmse) |> 
+  knitr::kable()
+```
+
+Based on these results, we can see that the Full Model with interactions performs the best. It has the highest adjusted R-squared value and the lowest RMSE.
+
+## Check Residuals
+```{r}
+par(mfrow = c(2,2))
+plot(full_model)
+```
+
+# Cross Validation
+
+We can also perform cross validation to assess the performance of our model.
+
+```{r}
+# Use 10-fold validation and create the training sets
+train = trainControl(method = "cv", number = 5)
+
+# Fit the filtered_best model
+math_model_cv = train(
+  formula(get_model_formula(full_model)),
+  data = math_df,
+  trControl = train,
+  method = 'lm')
+
+math_model_cv$results |> knitr::kable()
+```
+
+On average, the reading model explains 28.1% of the score's variance. The RMSE is 13.75, and the model has an average absolute difference of 11.30 between the true and predicted values.
+
+# With Other Scores
+
+We can now also assess how adding other scores (math and writing) to the model will affect its performance.
+
+```{r}
+math_and_scores = scores_df |> 
+  select(-id) |> 
+  na.omit()
+
+formula_with_scores = 
+  paste(get_model_formula(full_model), "+ reading_score + writing_score") |>
+  formula()
+
+model_with_scores = lm(formula_with_scores, data = math_and_scores)
+
+
+mse_math_scores = mean((math_and_scores$math_score - predict(model_with_scores, newdata = math_and_scores))^2)
+
+mse_math = mean((math_and_scores$math_score - predict(full_model, newdata = math_and_scores))^2)
+
+tibble(
+  model = c("Math with scores", "Math without scores"),
+  MSE = c(mse_math_scores, mse_math)
+) |> knitr::kable()
+```
+
+The MSE decreased by 5.8x after adding other scores to the model. Therefore, we can conclude the writing and reading scores can have a significant effect on the math score, and can leverage that in building another model.

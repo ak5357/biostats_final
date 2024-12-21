@@ -1,0 +1,1476 @@
+---
+title: "Biostats Final Project (Option 1)"
+output: github_document
+---
+
+```{r reg_math_setup, include = FALSE}
+# IMPORT LIBRARIES
+library(dplyr)
+library(ggplot2)
+library(caret)
+library(stringr)
+library(here)
+library(readr)
+library(patchwork)
+library(lmtest)
+library(tidyverse)
+
+# DEFAULT SETTINGS FOR PLOTS
+knitr::opts_chunk$set(
+  fig.width = 6,
+  fig.asp = .8,
+  out.width = "90%",
+  fig.align = "center",
+  eval = FALSE
+)
+
+# DEFAULT SETTINGS FOR PLOT THEME
+theme_set(
+  theme_classic() +
+    theme(
+      plot.title = element_text(hjust = 0.5), # Center the title
+      plot.subtitle = element_text(hjust = 0.5, margin = margin(b = 10)), # Center the subtitle
+      plot.caption = element_text(hjust = 0.5), # Center the caption
+      legend.position = "bottom"
+    )
+)
+```
+
+Note: This document is set to not evaluate code cells by default when it is knit. If you would like to see our knitted files, please visit our github repository, linked [here](https://github.com/ak5357/biostats_final/tree/main).
+
+# Data Import
+
+```{r}
+# FUNCTIONS ----------------------------------------------
+camel_to_snake <- function(x) {
+  str_replace_all(x, "([a-z])([A-Z])", "\\1_\\2") %>%
+    tolower()
+}
+
+# DATA IMPORT --------------------------------------------
+scores_df = read_csv("data/Project_1_data.csv") |> 
+  rename_with(camel_to_snake) |> 
+  mutate(
+    across(-where(is.numeric), ~ str_replace(.x, "/", "_")),
+    across(-where(is.numeric), ~ str_replace(.x, "'", "")),
+    id = row_number(),
+    across(c(gender, lunch_type, parent_marital_status,
+             is_first_child, transport_means),
+           as.factor),
+    ethnic_group = as.factor(str_replace(ethnic_group, "group ", "")),
+    parent_educ = factor(parent_educ, 
+                         levels = c("some high school", "high school", "some college",
+                                    "associates degree", "bachelors degree", "masters degree")),
+    test_prep = factor(test_prep,
+                       levels = c("none", "completed")),
+    practice_sport = factor(practice_sport,
+                            levels = c("never", "sometimes", "regularly")),
+    wkly_study_hours = factor(str_replace(wkly_study_hours, "10-May", "5-10"),
+                              levels = c("< 5", "5-10", "> 10"))
+  ) |> 
+  relocate(id)
+```
+
+# Exploratory Data Analysis
+
+## Preview data.
+
+Examine the overall data distributions and any correlations.
+```{r}
+scores_df |> select(-id) |> 
+  gtsummary::tbl_summary() |> 
+  gtsummary::bold_labels() |> 
+  gtsummary::italicize_levels()
+
+pairs(scores_df)
+```
+
+It appears that math score, reading score, and writing score are correlated pairwise.
+
+# **Visualizing Scores and Covariates**
+```{r}
+scores_compare_df = scores_df |> 
+  pivot_longer(
+    contains("_score"),
+    names_to = "score_type",
+    values_to = "score"
+  ) |> 
+  mutate(
+    score_type = str_replace(score_type, "_score", " Score") |> 
+      str_to_title()
+    )
+```
+
+### Gender
+
+General distribution.
+```{r}
+scores_df |> 
+  ggplot(aes(x = gender, fill = gender)) +
+  geom_bar(color = "black") +
+  labs(
+    title = ("Gender Distribution"),
+    x = "Gender",
+    y = "Count",
+    fill = "Gender"
+  )
+```
+
+Gender and Test Scores.
+```{r}
+scores_compare_df |> 
+  ggplot(aes(x = score, color = score_type, fill = str_to_title(gender))) +
+  geom_density(alpha = 0.5, color = "black") +
+  labs(
+    title = ("Gender and Test Scores"),
+    x = "Score (0-100)",
+    y = "Density",
+    fill = "Gender"
+  ) +
+  facet_grid(. ~ score_type)
+```
+
+### Ethnic Group
+
+General distribution.
+```{r}
+scores_df |> 
+  ggplot(aes(x = ethnic_group, fill = ethnic_group)) +
+  geom_bar(color = "black", alpha = 0.5) +
+  labs(
+    title = ("Ethnic Group Distribution"),
+    x = "Ethnic Group",
+    y = "Count",
+    fill = "Ethnic Group"
+  )
+```
+
+Math Score.
+```{r}
+scores_df |>
+  ggplot(aes(x = math_score, fill = ethnic_group)) +
+  geom_histogram(alpha = 0.5, color = "black", bins = 10) +
+  labs(
+    title = ("Ethnic Group and Math Scores"),
+    x = "Math Score (0-100)",
+    y = "Density",
+    fill = "Ethnic Group"
+  ) +
+  facet_grid(. ~ ethnic_group)
+```
+
+Reading Score.
+```{r}
+scores_df |>
+  ggplot(aes(x = reading_score, fill = ethnic_group)) +
+  geom_histogram(alpha = 0.5, color = "black", bins = 10) +
+  labs(
+    title = ("Ethnic Group and Reading Scores"),
+    x = "Reading Score (0-100)",
+    y = "Density",
+    fill = "Ethnic Group"
+  ) +
+  facet_grid(. ~ ethnic_group)
+```
+
+Writing Score.
+```{r}
+scores_df |>
+  ggplot(aes(x = writing_score, fill = ethnic_group)) +
+  geom_histogram(alpha = 0.5, color = "black", bins = 10) +
+  labs(
+    title = ("Ethnic Group and Writing Scores"),
+    x = "Writing Score (0-100)",
+    y = "Density",
+    fill = "Ethnic Group"
+  ) +
+  facet_grid(. ~ ethnic_group)
+```
+
+
+```{r}
+Project_1_data <- read_csv("data/Project_1_data.csv")
+View(Project_1_data)
+
+# Summary statistics for all variables
+summary_stats <- summary(Project_1_data )
+print(summary_stats)
+
+# Visualize the distribution of MathScore, ReadingScore, and WritingScore
+ggplot(Project_1_data, aes(x = MathScore)) + 
+  geom_histogram(binwidth = 5, fill = "blue", alpha = 0.7) + 
+  labs(title = "Distribution of Math Scores", x = "Math Score", y = "Frequency")
+
+ggplot(Project_1_data, aes(x = ReadingScore)) + 
+  geom_histogram(binwidth = 5, fill = "green", alpha = 0.7) + 
+  labs(title = "Distribution of Reading Scores", x = "Reading Score", y = "Frequency")
+
+ggplot(Project_1_data, aes(x = WritingScore)) + 
+  geom_histogram(binwidth = 5, fill = "red", alpha = 0.7) + 
+  labs(title = "Distribution of Writing Scores", x = "Writing Score", y = "Frequency")
+
+# Check for outliers using boxplots
+ggplot(Project_1_data, aes(y = MathScore)) + 
+  geom_boxplot(fill = "blue") + 
+  labs(title = "Boxplot of Math Scores", y = "Math Score")
+
+ggplot(Project_1_data, aes(y = ReadingScore)) + 
+  geom_boxplot(fill = "green") + 
+  labs(title = "Boxplot of Reading Scores", y = "Reading Score")
+
+ggplot(Project_1_data, aes(y = WritingScore)) + 
+  geom_boxplot(fill = "red") + 
+  labs(title = "Boxplot of Writing Scores", y = "Writing Score")
+
+```
+
+
+```{r}
+# Check for missing values
+missing_values <- colSums(is.na(Project_1_data))
+print(missing_values)
+
+# Explore distribution of numeric scores
+numeric_vars <- Project_1_data %>% select(MathScore, ReadingScore, WritingScore)
+summary(numeric_vars)
+
+# Check for potential outliers in numeric scores
+outliers <- numeric_vars %>% 
+  gather(key = "variable", value = "value") %>%
+  group_by(variable) %>%
+  summarize(lower_bound = quantile(value, 0.25) - 1.5 * IQR(value),
+            upper_bound = quantile(value, 0.75) + 1.5 * IQR(value)) %>%
+  left_join(numeric_vars %>% gather(key = "variable", value = "value"), by = "variable") %>%
+  filter(value < lower_bound | value > upper_bound)
+
+print(outliers)
+
+# Visualize distributions
+Project_1_data %>%
+  gather(key = "variable", value = "value", MathScore, ReadingScore, WritingScore) %>%
+  ggplot(aes(x = value, fill = variable)) +
+  geom_histogram(bins = 30, alpha = 0.7, position = "identity") +
+  facet_wrap(~ variable, scales = "free") +
+  theme_minimal()
+
+# Visualize categorical variables
+categorical_vars <- Project_1_data %>% select(Gender, EthnicGroup, ParentEduc, LunchType, TestPrep, 
+                                        ParentMaritalStatus, PracticeSport, IsFirstChild, 
+                                        TransportMeans, WklyStudyHours)
+
+categorical_plots <- categorical_vars %>%
+  gather(key = "variable", value = "value") %>%
+  ggplot(aes(x = value, fill = variable)) +
+  geom_bar(alpha = 0.7) +
+  facet_wrap(~ variable, scales = "free", ncol = 3) +
+  theme_minimal()
+
+print(categorical_plots)
+```
+
+
+```{r}
+# Function to create correlation plots
+create_correlation_plot <- function(x, y, data = Project_1_data, title) {
+  ggplot(data = data, aes_string(x = x, y = y)) +
+    geom_point() +
+    geom_smooth(method = "lm", se = FALSE, color = "blue") +
+    labs(title = title, x = x, y = y) +
+    theme_minimal()
+}
+```
+
+# Math Scores Model
+
+## Explore Predictors
+
+## Deciding whether `math_score` needs to be transformed.
+
+Visualize data.
+```{r}
+scores_df |> 
+  ggplot(aes(x = (math_score))) +
+  geom_boxplot() +
+  labs(
+    title = "Math Scores",
+    x = "Math Score (0-100)"
+  )
+
+scores_df |> 
+  ggplot(aes(x = (math_score))) +
+  geom_density(fill = "cornflowerblue", color = "darkslateblue", alpha = 0.5) +
+  labs(
+    title = "Math Scores",
+    x = "Math Score (0-100)",
+    y = "Density"
+  )
+
+scores_df |> 
+  ggplot(aes(sample = (math_score))) +
+  geom_qq() + geom_qq_line() +
+  labs(
+    title = "Math Scores",
+    y = "Math Score (0-100)",
+    x = "Standard Normal Quantiles"
+  )
+```
+
+Excluding outliers that are below Q1 - 1.5IQR.
+```{r}
+math_fivenum = fivenum(pull(scores_df, math_score))
+math_iqr = math_fivenum[[4]] - math_fivenum[[2]]
+# lower limit for outliers, no upper limit (Q1 + 1.5IQR = 106 > max=100)
+outlier_ll = math_fivenum[[2]] - math_iqr*1.5
+
+scores_df |> 
+  filter(math_score > outlier_ll) |> 
+  ggplot(aes(x = (math_score))) +
+  geom_boxplot() +
+  labs(
+    title = "Math Scores",
+    x = "Math Score (0-100)"
+  )
+
+scores_df |> 
+  filter(math_score > outlier_ll) |> 
+  ggplot(aes(sample = (math_score))) +
+  geom_qq() + geom_qq_line() +
+  labs(
+    title = "Math Scores",
+    y = "Math Score (0-100)",
+    x = "Standard Normal Quantiles"
+  )
+```
+
+### QQ Plots
+
+Test potential transformations for better normality assumption. It seems none of the transformations significantly improve the normality of the data.
+```{r}
+scores_df |> 
+  filter(math_score > outlier_ll) |> 
+  mutate(
+    tf_original = math_score,
+    tf_squared = math_score^2,
+    tf_power_1.2 = math_score^1.2,
+    tf_power_1.5 = math_score^1.5,
+    tf_power_1.3 = math_score^1.3,
+    tf_log = log(math_score)
+    ) |> 
+  pivot_longer(
+    cols = starts_with("tf_"),
+    names_to = "transformation",
+    values_to = "score",
+    names_prefix = "tf_"
+  ) |> 
+  ggplot(aes(sample = score)) +
+  geom_qq() +
+  geom_qq_line() +
+  facet_wrap(~transformation, scales = "free") +
+  labs(
+    title = "QQ Plots for Math Scores",
+    x = "Standard Normal Quantiles",
+    y = "Sample Quantiles"
+  )
+```
+
+### Box Cox Transformation
+
+When using a Box Cox Transformation to potentially improve the normality of the data, we can see that it is not able to estimate a lambda and thus does not apply a transformation. As such, I will continue with the original `math_score` data for the model.
+```{r}
+# Create a Box-Cox transformation object
+BoxCoxTrans(scores_df$math_score)
+```
+
+# Building Regression Models
+
+## Main Effects Model
+
+```{r}
+math_model = scores_df |> 
+  select(-c(id, reading_score, writing_score)) |> 
+  lm(math_score ~ ., data = _)
+
+math_model |> 
+  broom::tidy() |> 
+  filter(p.value < 0.05) |> 
+  knitr::kable(digits = 10, caption = "Full Model (no other scores) Coefficients")
+```
+
+**Significant Predictors**
+
+* gendermale
+* ethnic_groupE
+* parent_educassociates degree
+* parent_educbachelors degree
+* parent_educmasters degree
+* lunch_typestandard
+* test_prepcompleted
+* parent_marital_statusmarried
+* parent_marital_statuswidowed
+* wkly_study_hours5-10
+
+## Check residuals
+```{r}
+math_model |> summary()
+```
+
+**RSE = 13.52**: Indicates the average difference betweeen observeed and fitted values.
+
+**R^2 = 0.3221**
+About 32.21% of the variability in reading score is explained by the covariates.
+
+**Adj-R^2 = 0.2956**
+After penalizing for the predictors in the model that don't add anything useful, 29.56% of the variability in reading score is explained by the covariates.
+
+```{r}
+par(mfrow = c(2,2))
+plot(math_model)
+```
+
+## Stepwise Predictor Selection
+
+### Backwards Selection
+
+Update math model to only include significant predictors.
+```{r}
+math_model_bk = scores_df |> 
+  select(-c(id, reading_score, writing_score)) |> 
+  drop_na() |> 
+  lm(math_score ~ ., data = _) |> 
+  step(direction = "backward")
+
+math_model_bk |> summary()
+```
+
+**Resulting Model**
+
+math_score ~ gender + ethnic_group + parent_educ + 
+    lunch_type + test_prep + parent_marital_status + nr_siblings + 
+    wkly_study_hours
+    
+**Significant Predictors**
+
+* gendermale
+* ethnic_groupE
+* parent_educassociates degree
+* parent_educbachelors degree
+* parent_educmasters degree
+* lunch_typestandard
+* test_prepcompleted
+* parent_marital_statusmarried
+* parent_marital_statuswidowed
+* wkly_study_hours5-10
+
+**RSE = 13.5**: Indicates the average difference betweeen observeed and fitted values.
+
+**R^2 = 0.32**
+About 32% of the variability in reading score is explained by the covariates.
+
+**Adj-R^2 = 0.2985**
+After penalizing for the predictors in the model that don't add anything useful, 29.85% of the variability in reading score is explained by the covariates.
+
+```{r}
+par(mfrow = c(2,2))
+plot(math_model_bk)
+```
+
+### Forward Selection
+
+Update math model to only include significant predictors.
+```{r}
+null_math_model = scores_df |> 
+  select(-c(id, reading_score, writing_score)) |> 
+  drop_na() |> 
+  lm(math_score ~ 1, data = _)
+
+math_model_fw = null_model |> 
+  step(direction = "forward", scope = formula(math_model))
+
+math_model_fw |> summary()
+
+math_model_fw |> 
+  broom::tidy() |> 
+  filter(p.value < 0.05) |> 
+  pull(term) |> 
+  paste(collapse = "* ")
+```
+
+**Resulting Model**
+
+math_score ~ gender + ethnic_group + parent_educ + 
+    lunch_type + test_prep + parent_marital_status + practice_sport + 
+    is_first_child + nr_siblings + transport_means + wkly_study_hours
+
+**Significant Predictors**
+
+* lunch_typestandard
+* ethnic_groupE
+* test_prepcompleted
+* gendermale
+* parent_educassociates degree
+* parent_educbachelors degree
+* parent_educmasters degree
+* parent_marital_statusmarried
+* parent_marital_statuswidowed
+* wkly_study_hours5-10
+
+**RSE = 13.52**: Indicates the average difference betweeen observeed and fitted values.
+
+**R^2 = 0.3221**
+About 32.21% of the variability in reading score is explained by the covariates.
+
+**Adj-R^2 = 0.2956**
+After penalizing for the predictors in the model that don't add anything useful, 29.56% of the variability in reading score is explained by the covariates.
+
+```{r}
+par(mfrow = c(2,2))
+plot(math_model_bk)
+```
+
+# Interaction
+
+## Run Interaction Plots
+
+One example here, the rest are in code.
+```{r}
+math_df = scores_df |> 
+  select(-c(id, reading_score, writing_score)) |> 
+  drop_na()
+
+# Ethnic Group
+interaction.plot(
+  x.factor = math_df$lunch_type,
+  trace.factor = math_df$ethnic_group,
+  response = math_df$math_score,
+  col = rainbow(length(unique(math_df$ethnic_group))),
+  xlab = "Lunch Type",
+  trace.label = "Ethnic Group",
+  ylab = "Math Score",
+  main = "Interaction: Lunch Type x Ethnic Group"
+)
+```
+
+**Interactions found**
+
+* gender, nr_siblings
+* ethnic_group, parent_educ
+* ethnic_group, lunch_type
+* ethnic_group, test_prep
+* ethnic_group, parent_marital_status
+* ethnic_group, practice_sport
+* ethnic_group, is_first_child
+* ethnic_group, nr_siblings
+* ethnic_group, transport_means
+* ethnic_group, wkly_study_hours
+* parent_educ, lunch_type
+* parent_educ, test_prep
+* parent_educ, parent_marital_status
+* parent_educ, practice_sport
+* parent_educ, is_first_child
+* parent_educ, nr_siblings
+* parent_educ, transport_means
+* parent_educ, wkly_study_hours
+* parent_marital_status, practice_sport
+* parent_marital_status, is_first_child
+* parent_marital_status, nr_siblings
+* parent_marital_status, transport_means
+* parent_marital_status, wkly_study_hours
+* practice_sport, is_first_child
+* practice_sport, nr_siblings
+* practice_sport, transport_means
+* practice_sport, wkly_study_hours
+* is_first_child, nr_siblings
+* is_first_child, wkly_study_hours
+* nr_siblings, transport_means
+* nr_siblings, wkly_study_hours
+* transport_means, wkly_study_hours
+
+## Identify significant interactions
+```{r}
+interaction_pairs = c("gender, nr_siblings", "ethnic_group, parent_educ", "ethnic_group, lunch_type", "ethnic_group, test_prep", "ethnic_group, parent_marital_status", "ethnic_group, practice_sport", "ethnic_group, is_first_child", "ethnic_group, nr_siblings", "ethnic_group, transport_means", "ethnic_group, wkly_study_hours", "parent_educ, lunch_type", "parent_educ, test_prep", "parent_educ, parent_marital_status", "parent_educ, practice_sport", "parent_educ, is_first_child", "parent_educ, nr_siblings", "parent_educ, transport_means", "parent_educ, wkly_study_hours", "parent_marital_status, practice_sport", "parent_marital_status, is_first_child", "parent_marital_status, nr_siblings", "parent_marital_status, transport_means", "parent_marital_status, wkly_study_hours", "practice_sport, is_first_child", "practice_sport, nr_siblings", "practice_sport, transport_means", "practice_sport, wkly_study_hours", "is_first_child, nr_siblings", "is_first_child, wkly_study_hours", "nr_siblings, transport_means", "nr_siblings, wkly_study_hours", "transport_means, wkly_study_hours")
+
+
+get_model_formula = function(model){
+  model_formula_char = as.character(formula(math_model))
+  model_formula_str = paste(
+    model_formula_char[[2]],
+    model_formula_char[[1]],
+    model_formula_char[[3]])
+  
+  return(model_formula_str)
+}
+
+math_model_formula_str = get_model_formula(math_model)
+
+# Significant Interactions List
+sig_int = list()
+
+for(i in 1:length(interaction_pairs)){
+  interaction_term = interaction_pairs[[i]] |> 
+    str_replace(", ", " * ")
+  new_formula = paste(math_model_formula_str, "+", interaction_term) |> 
+    formula()
+  new_model = lm(new_formula, data = math_df)
+  
+  significant_interactions = new_model |> 
+    broom::tidy() |> 
+    filter(str_detect(term, ":")) |> 
+    filter(p.value < 0.05)
+  
+  if (nrow(significant_interactions) > 0){
+    print(interaction_pairs[[i]])
+    sig_int = append(sig_int, interaction_term)
+  }
+}
+```
+
+# Modeling with Interactions
+
+## Full Model with Interactions
+```{r}
+full_model_formula = 
+  paste(math_model_formula_str, "+", paste(sig_int, collapse = " + ")) |> 
+  formula()
+full_model = lm(full_model_formula, data = math_df)
+
+full_model |> summary()
+```
+
+## Backwards Model with Interactions
+```{r}
+backward_model = 
+  math_df |> 
+  lm(full_model_formula, data = _) |> 
+  step(direction = "backward")
+
+backward_model |> summary()
+```
+
+## Forward Model with Interactions
+```{r}
+null_model = math_df |> 
+  lm(math_score ~ 1, data = _)
+
+forward_model = null_model |> 
+  step(direction = "forward", scope = full_model_formula)
+```
+
+
+# Model Summaries
+```{r}
+models_list = list(math_model, math_model_bk, math_model_fw, full_model, backward_model, forward_model)
+model_names = c("Full Model", "Backward Model", "Forward Model", "Full Model with Interactions", "Backward Model with Interactions", "Forward Model with Interactions")
+
+model_summaries_df = tibble(
+  name = character(),
+  formula = character(),
+  r.squared = numeric(),
+  adj.r.squared = numeric(),
+  rmse = numeric()
+)
+
+for(i in 1:length(models_list)){
+  model_summary = summary(models_list[[i]])
+  
+  new_row = tibble(
+    name = model_names[[i]],
+    formula = get_model_formula(models_list[[i]]),
+    r.squared = model_summary$r.squared,
+    adj.r.squared = model_summary$adj.r.squared,
+    rmse = sqrt(mean(model_summary$residuals^2))
+  )
+  
+  model_summaries_df = bind_rows(model_summaries_df, new_row)
+}
+
+# Output summary of models
+model_summaries_df |> 
+  arrange(-adj.r.squared, rmse) |> 
+  knitr::kable()
+```
+
+Based on these results, we can see that the Full Model with interactions performs the best. It has the highest adjusted R-squared value and the lowest RMSE.
+
+## Check Residuals
+```{r}
+par(mfrow = c(2,2))
+plot(full_model)
+```
+
+# Cross Validation
+
+We can also perform cross validation to assess the performance of our model.
+
+```{r}
+# Use 10-fold validation and create the training sets
+train = trainControl(method = "cv", number = 5)
+
+# Fit the filtered_best model
+math_model_cv = train(
+  formula(get_model_formula(full_model)),
+  data = math_df,
+  trControl = train,
+  method = 'lm')
+
+math_model_cv$results |> knitr::kable()
+```
+
+On average, the reading model explains 28.1% of the score's variance. The RMSE is 13.75, and the model has an average absolute difference of 11.30 between the true and predicted values.
+
+# With Other Scores
+
+We can now also assess how adding other scores (math and writing) to the model will affect its performance.
+
+```{r}
+math_and_scores = scores_df |> 
+  select(-id) |> 
+  na.omit()
+
+formula_with_scores = 
+  paste(get_model_formula(full_model), "+ reading_score + writing_score") |>
+  formula()
+
+model_with_scores = lm(formula_with_scores, data = math_and_scores)
+
+
+mse_math_scores = mean((math_and_scores$math_score - predict(model_with_scores, newdata = math_and_scores))^2)
+
+mse_math = mean((math_and_scores$math_score - predict(full_model, newdata = math_and_scores))^2)
+
+tibble(
+  model = c("Math with scores", "Math without scores"),
+  MSE = c(mse_math_scores, mse_math)
+) |> knitr::kable()
+```
+
+The MSE decreased by 5.8x after adding other scores to the model. Therefore, we can conclude the writing and reading scores can have a significant effect on the math score, and can leverage that in building another model.
+
+# Reading Score Model
+
+## Decide if `reading_score` needs to be transformed.
+
+```{r}
+
+scores_df |> 
+  ggplot(aes(x = (reading_score))) +
+  geom_boxplot()
+
+scores_df |> 
+  ggplot(aes(sample = (reading_score))) +
+  geom_qq() + geom_qq_line()
+```
+
+According to the boxplot and QQ-plot above, `reading_score` does not meet the normality assumptions because of values in the higher range. We can try a Box Cox transformation to adjust this.
+
+```{r}
+library(caret)
+
+# Create a Box-Cox transformation object
+bc_transform <- BoxCoxTrans(scores_df$reading_score)  # Replace Area with your variable
+
+# View the optimal lambda
+bc_transform$lambda
+```
+
+According to the Box-Cox transformation, the ideal lambda is 1.3. Since 1.3 is difficult to contextualize in terms of score, let's try to compare this to 2. When we compare this to 2, we can see that the normality plot doesn't get much better - in fact, now the lower tails are worse. Based on this, for the ease of explanation, we will move forward with the original `reading_score` variable.
+
+```{r}
+scores_df |> 
+  ggplot(aes(x = (reading_score)^2)) +
+  geom_boxplot()
+
+scores_df |> 
+  ggplot(aes(sample = (reading_score)^2)) +
+  geom_qq() + geom_qq_line()
+```
+
+# Building regression models
+
+## Full model
+
+We can start by creating a full model.
+
+```{r}
+reading_full_df = scores_df |> select(-c(id, math_score, writing_score))
+
+reading_model = lm(reading_score ~ ., data = reading_full_df)
+reading_model |> summary() |> broom::tidy() |> knitr::kable(digits = 10, caption = "Full Model (no other scores) Coefficients")
+```
+
+Significant coefficients:
+
+- (Intercept)
+- gendermale
+- ethnic_groupB
+- ethnic_groupE
+- lunch_typestandard
+- test_prepcompleted
+- parent_marital_statusmarried
+- parent_educassociates degree
+- parent_educbachelors degree
+- parent_educmasters degree
+- wkly_study_hours5-10
+
+## Check spread of residuals.
+
+**RSE = 13.2**: Indicates the average difference betweeen observeed and fitted values.
+
+**R^2 = 0.2709**
+About 26.09% of the variability in reading score is explained by the covariates.
+
+**Adj-R^2 = 0.2425**
+After penalizing for the predictors in the model that don't add anything useful, 21.82% of the variability in reading score is explained by the covariates.
+
+## Plotting models
+
+Looking at the plots below, we can see that the residuals generally follow normality, homoscedascity and mean zero looking at the diagnostic plots.
+
+```{r}
+par(mfrow=c(2,2))
+plot(reading_model)
+```
+
+# Creating optimal models
+
+Start regression procedures without the other score variables against `reading_score`.
+
+In order to use these procedures, we must remove NAs from the dataset.
+```{r}
+# Does not contain id, math score, wrting score, or NAs
+reading_df = scores_df |> na.omit() |> select(-c(id, math_score, writing_score))
+```
+
+Use forward and backward model selection and test-based procedures.
+
+## Backward model
+```{r}
+# Backward model
+mult.fit = lm(reading_score ~ ., data = reading_df)
+summary(mult.fit)
+backward_model = step(mult.fit, direction = "backward")
+
+backward_model |> summary() |> broom::tidy() |> knitr::kable(digits = 10, caption = "Backward Model Coefficients")
+```
+
+The resulting model is:
+
+reading_score ~ gender + ethnic_group + parent_educ + lunch_type + test_prep + parent_marital_status + wkly_study_hours
+
+The following coeffients from that model are significant:
+- gendermale
+- ethnic_groupE
+- parent_educassociates degree
+- parent_educbachelors degree
+- parent_educmasters degree
+- lunch_typestandard
+- test_prepcompleted
+- parent_marital_statusmarried
+- wkly_study_hours5-10
+
+## Forward model
+```{r eval = FALSE}
+# Forward model
+null_model = lm(reading_score ~ 1, data = reading_df)
+forward_model = step(null_model, direction = "forward", scope = formula(mult.fit))
+forward_model |> summary() |> broom::tidy() |> knitr::kable(digits = 10, caption = "Forward Model Coefficients (no other scores)")
+```
+
+The resulting model is: 
+
+reading_score ~ lunch_type + gender + test_prep + parent_educ + ethnic_group + parent_marital_status + wkly_study_hours
+
+The following coefficients from that model are significant:
+- lunch_typestandard
+- gendermale
+- test_prepcompleted
+- parent_educassociates degree
+- parent_educbachelors degree
+- parent_educmasters degree
+- ethnic_groupE
+- parent_marital_statusmarried
+- wkly_study_hours5-10
+
+# Interaction
+
+## Run interaction plots.
+
+One example here, rest are in code (not evaluated):
+
+```{r}
+# Ethnic Group
+interaction.plot(
+  x.factor = reading_df$lunch_type,
+  trace.factor = reading_df$ethnic_group,
+  response = reading_df$reading_score,
+  col = rainbow(length(unique(reading_df$ethnic_group))),
+  xlab = "Lunch Type",
+  trace.label = "Ethnic Group",
+  ylab = "Reading Score",
+  main = "Interaction: Lunch Type x Ethnic Group"
+)
+```
+
+```{r eval=FALSE}
+# Define the combinations of x.factor and trace.factor
+combinations <- list(
+  list(x = "lunch_type", trace = "ethnic_group"),
+  list(x = "parent_educ", trace = "ethnic_group"),
+  list(x = "test_prep", trace = "ethnic_group"),
+  list(x = "parent_marital_status", trace = "ethnic_group"),
+  list(x = "practice_sport", trace = "ethnic_group"),
+  list(x = "is_first_child", trace = "ethnic_group"),
+  list(x = "nr_siblings", trace = "ethnic_group"),
+  list(x = "transport_means", trace = "ethnic_group"),
+  list(x = "wkly_study_hours", trace = "ethnic_group"),
+  list(x = "lunch_type", trace = "parent_educ"),
+  list(x = "test_prep", trace = "parent_educ"),
+  list(x = "parent_marital_status", trace = "parent_educ"),
+  list(x = "practice_sport", trace = "parent_educ"),
+  list(x = "is_first_child", trace = "parent_educ"),
+  list(x = "nr_siblings", trace = "parent_educ"),
+  list(x = "transport_means", trace = "parent_educ"),
+  list(x = "wkly_study_hours", trace = "parent_educ"),
+  list(x = "practice_sport", trace = "parent_marital_status"),
+  list(x = "nr_siblings", trace = "parent_marital_status"),
+  list(x = "transport_means", trace = "parent_marital_status"),
+  list(x = "wkly_study_hours", trace = "parent_marital_status"),
+  list(x = "is_first_child", trace = "practice_sport"),
+  list(x = "nr_siblings", trace = "practice_sport"),
+  list(x = "transport_means", trace = "practice_sport"),
+  list(x = "wkly_study_hours", trace = "practice_sport"),
+  list(x = "nr_siblings", trace = "is_first_child"),
+  list(x = "wkly_study_hours", trace = "is_first_child"),
+  list(x = "wkly_study_hours", trace = "transport_means")
+)
+
+library(gridExtra)
+
+# Function to create and capture an interaction plot as a grob
+create_interaction_plot <- function(x, trace, response, data) {
+  interaction.plot(
+    x.factor = data[[x]],
+    trace.factor = data[[trace]],
+    response = data[[response]],
+    col = rainbow(length(unique(data[[trace]]))),
+    xlab = x,
+    trace.label = trace,
+    ylab = response,
+    main = paste("Interaction:", x, "x", trace)
+  )
+}
+
+# Generate and store all interaction plots
+interaction_plots <- lapply(combinations, function(combo) {
+  create_interaction_plot(combo$x, combo$trace, "reading_score", reading_df)
+})
+
+```
+
+### Potential interactions (as found from plots):
+- Lunch Type x Ethnic Group
+- Parent Educ x Ethnic Group
+- Test Prep x Ethnic Group
+- Parent Marital Status x Ethnic Group
+- Practice Sport x Ethnic Group
+- Is First Child x Ethnic Group
+- Number of Siblings x Ethnic Group
+- Transport Means x Ethnic Group
+- Weekly Study Hours x Ethnic Group
+- Lunch Type x Parent Educ
+- Test Prep x Parent Educ
+- Parent Marital Status x Parent Educ
+- Practice Sport x Parent Educ
+- Is First Child x Parent Educ
+- Number of Siblings x Parent Educ
+- Transport Means x Parent Educ
+- Weekly Study Hours x Parent Educ
+- Practice Sport x Parent Marital Status
+- Number of Siblings x Parent Marital Status
+- Transport Means x Parent Marital Status
+- Weekly Study Hours x Parent Marital Status
+- Is First Child x Practice Sport
+- Number of Siblings x Practice Sport
+- Transport Means x Practice Sport
+- Weekly Study Hours x Practice Sport
+- Number of Siblings x Is First Child
+- Weekly Study Hours x Is First Child
+- Weekly Study Hours x Transport Means
+
+## Running models with significant interactions
+
+All of the variables above had plots that indicated there may be a chance of interaction. Let's try fitting a full model again with these possible interactions to see what's significant. The final FULL model is below with significant interaction terms:
+
+```{r}
+full_with_interactions = lm(reading_score ~ . + parent_educ*wkly_study_hours + parent_marital_status*wkly_study_hours, data = reading_df)
+
+full_with_interactions |> summary() |> broom::tidy() |> knitr::kable(digits = 10, caption = "Full model coefficients with significant interaction terms")
+```
+
+Significant coefficients from the full model with interactions:
+- gendermale
+- ethnic_groupE
+- lunch_typestandard
+- test_prepcompleted
+- parent_educbachelors degree:wkly_study_hours5-10
+- parent_marital_statussingle:wkly_study_hours> 10
+
+Use an automatic procedure to refit the model based on the significant interactions we found above.
+```{r}
+# Add an interaction term and refit the model
+
+interactions_null = lm(reading_score ~ 1, data = reading_df)
+interaction_best_model = step(interactions_null, direction = "forward", scope = formula(full_with_interactions))
+
+full_with_interactions |> summary() |> broom::tidy() |> knitr::kable(digits = 10, caption = "Forward model coefficients with significant interaction term")
+```
+
+Significant coefficients from this model (including interactions):
+- lunch_typestandard
+- gendermale
+- test_prepcompleted
+- parent_educassociates degree
+- parent_educbachelors degree
+- parent_educmasters degree
+- ethnic_groupE
+- parent_marital_statussingle:wkly_study_hours> 10
+
+# Examining the Residuals (without other scores)
+Let's take a look at the residuals to make sure assumptions are met for the most recent model, since it has the best adjusted R^2 and RMSE so far (in table below).
+
+```{r}
+par(mfrow=c(2,2))
+plot(interaction_best_model)
+```
+
+The normality assumptions are met for the most part, but it looks like 34 is an outlier. Let's try running the model again without that outlier.
+
+```{r}
+filtered_reading <- reading_df %>% filter(row_number() != 34)
+filtered_full = lm(reading_score ~ . + parent_educ*wkly_study_hours + parent_marital_status*wkly_study_hours, data = filtered_reading)
+filtered_interactions_null = lm(reading_score ~ 1, data = filtered_reading)
+filtered_best = step(filtered_interactions_null, direction = "forward", scope = formula(full_with_interactions))
+
+par(mfrow=c(2,2))
+plot(filtered_best)
+```
+
+After removing the outlier, our residuals vs. leverage plot looks much better, and the other plots are still consistent. This model is now better suited to meet regression assumptions.
+
+# Choosing the Final Reading Model
+
+|Model (without other scores) |R^2            |Adjusted R^2       |RMSE          |
+|-------------------------------|---------------|------------------|---------------|
+|**Full model**: reading_score ~ lunch_type + gender + test_prep + ethnic_group + parent_marital_status + practice_sport + is_first_child + nr_siblings + transport_mean + wkly_study_hours   |0.2709     |0.2425   |13.2    |
+|**Forward model**: reading_score ~ lunch_type + gender + test_prep + ethnic_group + parent_marital_status + is_first_child    |0.2661   |0.2442   |13.19    |
+|**Backward model**: reading_score ~ gender + ethnic_group + lunch_type + test_prep + parent_marital_status + is_first_child |0.2661    |0.2442   |13.19   |
+|**Full model with interactions**: reading_score ~ lunch_type + gender + test_prep + ethnic_group + parent_marital_status + practice_sport + is_first_child + nr_siblings + transport_mean + wkly_study_hours +  parent_educ:wkly_study_hours + parent_marital_status:wkly_study_hours    |0.303     |0.2547   |13.09    |
+|**Forward model with interactions**: reading_score ~ lunch_type + gender + test_prep + parent_educ + ethnic_group + parent_marital_status + wkly_study_hours + parent_marital_status:wkly_study_hours    |0.2827   |0.2534    |13.11    |
+|***Forward model with interactions and without outlier***: reading_score ~ lunch_type + gender + test_prep + parent_educ + ethnic_group + parent_marital_status + wkly_study_hours + parent_marital_status:wkly_study_hours    |0.2846   |0.2553    |12.96    |
+
+Based on these results, we believe that the last model in the table performs the best, given that it has the highest adjusted R^2 value and lowest RMSE. The model also meets the regression assumptions - though it may be useful to consider other influential observations! The data here shows that the variability accounted for by the linear relationship between the predictors and the outcome is 0.2846, and the addition of a new useful predictor accounts for 0.2553 of the variability. 
+
+Thus, our final model is:
+
+**reading_score ~ lunch_type + gender + test_prep + parent_educ + ethnic_group + parent_marital_status + wkly_study_hours + parent_marital_status * wkly_study_hours**
+
+```{r echo=FALSE}
+filtered_best |> summary() |> broom::tidy() |> knitr::kable(digits = 10, caption = "Final Model Coefficients: Forward selection model with interactions and without outlier")
+```
+
+
+# Cross Validation
+
+We can also perform cross validation to assess the performance of our model.
+
+```{r}
+# Use 10-fold validation and create the training sets
+train = trainControl(method = "cv", number = 5)
+
+# Fit the filtered_best model
+reading_model = train(
+  reading_score ~ lunch_type + gender + test_prep + parent_educ + ethnic_group + parent_marital_status + wkly_study_hours + parent_marital_status*wkly_study_hours,
+  data = filtered_reading,
+  trControl = train,
+  method = 'lm')
+
+reading_model$results |> knitr::kable()
+```
+
+On average, the reading model explains 23.7% of the score's variance. The RMSE is 13.17, and the model has an average absolute difference of 10.72 between the true and predicted values.
+
+# With Other Scores
+
+We can now also assess how adding other scores (math and writing) to the model will affect its performance.
+
+```{r}
+reading_and_scores = scores_df |> select(-id) |> na.omit()
+reading_and_scores = reading_and_scores |> filter(row_number() != 34)
+
+reading_with_other_scores = lm(reading_score ~ math_score + writing_score + lunch_type + gender + test_prep + parent_educ + ethnic_group + parent_marital_status + wkly_study_hours + parent_marital_status*wkly_study_hours, data = reading_and_scores)
+
+mse_reading_scores = mean((reading_and_scores$reading_score - predict(reading_with_other_scores, newdata = reading_and_scores))^2)
+
+mse_reading = mean((reading_and_scores$reading_score - predict(filtered_best, newdata = reading_and_scores))^2)
+
+tibble(
+  model = c("Reading with scores", "Reading without scores"),
+  MSE = c(mse_reading_scores, mse_reading)
+) |> knitr::kable()
+```
+
+The MSE decreased by a tenfold after adding other scores to the model. Therefore, we can conclude the writing and math scores can have a significant effect on the reading score, and can leverage that in building another model.
+
+# Writing Scores Model
+
+## Visualize the distribution of writing_score
+
+```{r, echo=FALSE}
+scores_df |> 
+  ggplot(aes(x = (writing_score))) +
+  geom_boxplot()
+
+# Q-Q plot for writing_score
+scores_df |> 
+  ggplot(aes(sample = (writing_score))) +
+  geom_qq() + geom_qq_line()
+```
+
+Based on this plot, we see a roughly straight diagonal, but deviations at the tails. This could indicate a potential issue with normality.
+
+We can attempt a Box-Cox transformation to solve this issue. 
+
+```{r}
+# Load required library
+library(caret)
+
+# Create a binary variable for gendermale
+scores_df$gendermale <- ifelse(scores_df$gender == "male", 1, 0)
+
+# Verify the variable
+table(scores_df$gendermale)
+
+# Box-Cox Transformation
+boxcox_obj <- BoxCoxTrans(scores_df$writing_score)  
+
+# View the optimal lambda for Box-Cox transformation
+optimal_lambda <- boxcox_obj$lambda
+cat("Optimal Lambda for Box-Cox Transformation:", optimal_lambda, "\n")
+```
+The optimal lambda is 1.3, which is close to 1, which means a transformation is not necessary. If the transformation does not significantly improve predictive accuracy, it may not be worthwhile.
+
+We can proceed without a transformation.
+
+# Basic Regression Model
+```{r, echo=FALSE}
+writing_df = scores_df |> na.omit() |> select(-c(id, math_score, reading_score))
+
+writing_model = lm(writing_score ~ ., data = writing_df)
+
+writing_model_summary <- broom::tidy(writing_model) |> knitr::kable(digits = 3)
+
+writing_model |> summary()
+
+par(mfrow=c(2,2))
+plot(writing_model)
+```
+
+Significant coefficients:
+
+- (Intercept) (p<2e−16)
+- gendermale (p=5.56e−12)
+- ethnic_groupE (p=0.008673)
+- ethnic_groupD (p=0.016531)
+- parent_educsome college (p=0.010898)
+- parent_educassociates degree (p=0.000239)
+- parent_educbachelors degree (p=2.62e-06)
+- parent_educmasters degree (p=1.10e-06)
+- lunch_typestandard (p=<2e-16)
+- test_prepcompleted (p=3.09e-14)
+- parent_marital_statusmarried (p=0.000561)
+- wkly_study_hours5-10 (p=0.026048)
+
+# Residual Analysis
+
+**RSE = 12.65**: the RSE represents the average difference betweeen observed and fitted values.
+
+**R^2 = 0.3634**: The R^2 value represents the fact that 36.34% of the variability in writing score is explained by the covariates.
+
+**Adj-R^2 = 0.3385**: Removing predictors in the model that don't add significance, 33.85% of the variability in writing score is explained by the selected covariates.
+
+### Create a model with the significant variables
+```{r, echo=FALSE}
+# Step 1: Subset the data to include only significant variables
+writing_df_significant <- writing_df |>
+  na.omit() |>
+  select(
+    writing_score, gender, ethnic_group, lunch_type, test_prep, parent_educ, 
+    parent_marital_status, wkly_study_hours
+  )
+
+# Step 2: Convert categorical variables to factors
+writing_df_significant <- writing_df_significant |> 
+  mutate(
+    gender = as.factor(gender),
+    ethnic_group = as.factor(ethnic_group),
+    lunch_type = as.factor(lunch_type),
+    test_prep = as.factor(test_prep),
+    parent_educ = as.factor(parent_educ),
+    parent_marital_status = as.factor(parent_marital_status),
+    wkly_study_hours = as.factor(wkly_study_hours)
+  )
+
+# Step 3: Verify that variables are correctly treated as factors
+sapply(writing_df_significant, class)
+
+# Step 4: Fit the regression model using only significant variables
+significant_model <- lm(
+  writing_score ~ gender + ethnic_group + lunch_type + test_prep + 
+                  parent_educ + parent_marital_status + wkly_study_hours, 
+  data = writing_df_significant
+)
+
+# Step 5: Summarize the model
+summary(significant_model)
+```
+Model using only significant coefficients: **writing_score ~ gender + ethnic_group + lunch_type +  test_prep + parent_educ + parent_marital_status + wkly_study_hours**
+    
+# Model Selection
+
+### Diagnostics
+```{r, echo=FALSE}
+# Plot diagnostics for the final model
+par(mfrow = c(2, 2))
+plot(significant_model)
+
+# Check normality of residuals
+shapiro.test(residuals(significant_model))
+
+# Check homoscedasticity
+library(lmtest)
+bptest(significant_model)
+
+writing_df |> 
+  ggplot(aes(sample = (writing_score))) +
+  geom_qq() + geom_qq_line()
+
+```
+
+### Backward Model
+```{r, echo=FALSE}
+# Backward model
+mult.fit = lm(writing_score ~ ., data = writing_df)
+summary(mult.fit)
+backward_model = step(mult.fit, direction = "backward")
+```
+Backward Model: **gender + ethnic_group + parent_educ + lunch_type + test_prep + parent_marital_status + nr_siblings + wkly_study_hours**
+    
+### Forward Model
+```{r, echo=FALSE}
+library(dplyr)
+# Remove rows with missing values
+writing_df <- writing_df |> na.omit()
+
+# Verify the number of rows after removing missing values
+nrow(writing_df)
+
+# Define the null model
+null_model <- lm(writing_score ~ 1, data = writing_df)
+
+# Perform forward selection
+forward_model = step(null_model, direction = "forward", scope = formula(mult.fit))
+summary(forward_model)
+```
+Forward model: **writing_score ~ gender + lunch_type + test_prep + parent_educ + ethnic_group + parent_marital_status + wkly_study_hours + nr_siblings**
+    
+
+# Select Final Model
+```{r}
+# Extract Adjusted R²
+adj_r2_forward <- summary(forward_model)$adj.r.squared
+adj_r2_backward <- summary(backward_model)$adj.r.squared
+adj_r2_sig <- summary(significant_model)$adj.r.squared
+
+# Extract AIC
+aic_forward <- AIC(forward_model)
+aic_backward <- AIC(backward_model)
+aic_significant <- AIC(significant_model)
+
+# Cross-Validation for RMSE
+library(caret)
+
+# Cross-validate Forward Model
+cv_forward <- train(
+  formula(forward_model),
+  data = writing_df,
+  method = "lm",
+  trControl = trainControl(method = "cv", number = 10)
+)
+
+# Cross-validate Backward Model
+cv_backward <- train(
+  formula(backward_model),
+  data = writing_df,
+  method = "lm",
+  trControl = trainControl(method = "cv", number = 10)
+)
+
+# Cross-validate Sig Model
+cv_significant <- train(
+  formula(significant_model),
+  data = writing_df,
+  method = "lm",
+  trControl = trainControl(method = "cv", number = 10)
+)
+
+rmse_forward <- cv_forward$results$RMSE
+rmse_backward <- cv_backward$results$RMSE
+rmse_significant <- cv_significant$results$RMSE
+
+# Create a Comparison Table
+comparison_table <- data.frame(
+  Model = c("Forward", "Backward", "Significant"),
+  Adjusted_R2 = c(adj_r2_forward, adj_r2_backward, adj_r2_sig),
+  AIC = c(aic_forward, aic_backward, aic_significant),
+  RMSE = c(rmse_forward, rmse_backward, rmse_significant)
+)
+
+print(comparison_table)
+
+# Decide the Final Model
+if (aic_forward < aic_backward & aic_forward < aic_significant & 
+    rmse_forward < rmse_backward & rmse_forward < rmse_significant) {
+  final_model <- forward_model
+  cat("Final Model: Forward Selection\n")
+} else if (aic_backward < aic_significant & rmse_backward < rmse_significant) {
+  final_model <- backward_model
+  cat("Final Model: Backward Selection\n")
+} else {
+  final_model <- significant_model
+  cat("Final Model: Significant Model\n")
+}
+
+# Print Summary of Final Model
+summary(final_model)
+
+library(broom)
+library(knitr)
+library(kableExtra)
+
+# Tidy the final model
+tidy_model <- tidy(final_model, conf.int = TRUE)
+
+# Display the tidied model
+tidy_model |>
+  kable(caption = "Summary of the Final Model for Writing Score", 
+        format = "html") |>
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = FALSE)
+```
+
+Current best model is: **writing_score ~ gender + ethnic_group + lunch_type + test_prep + parent_educ + parent_marital_status + wkly_study_hours**
+
+
+## Diagnostics
+```{r}
+# Residual diagnostics
+par(mfrow = c(2, 2))
+plot(final_model)
+
+# Normality of residuals
+shapiro.test(residuals(final_model))
+
+# Homoscedasticity test
+library(lmtest)
+bptest(final_model)
+
+# Define the cross-validation method (10-fold CV)
+train_control <- trainControl(method = "cv", number = 10)
+
+# Perform cross-validation on the final model
+cv_final <- train(
+  formula(final_model),  # Extract formula from the final model
+  data = writing_df,
+  method = "lm",  # Linear regression
+  trControl = train_control
+)
+
+# Display cross-validation results
+print(cv_final)
+
+ # Extract performance metrics
+cat("Cross-Validation Metrics for Final Model:\n")
+cat("RMSE:", cv_final$results$RMSE, "\n")
+cat("R²:", cv_final$results$Rsquared, "\n")
+cat("MAE:", cv_final$results$MAE, "\n")
+```
+
+# Interactions
+#### reduced, output hidden, to allow for reasonable run time, was originally run with all variables as interaction terms (*)
+```{r, echo=FALSE}
+
+#model_interaction_all <- lm(writing_score ~ gender * ethnic_group * parent_educ * lunch_type * test_prep  *  parent_marital_status * wkly_study_hours * practice_sport, data = writing_df)
+#summary(model_interaction_all)
+```
+After using this model to test for all variables in combination, there were no interactions that had a p-value less than 0.05. A few had a p-value less than 0.1, but these did not improve the model. We can try to test an interaction that had a small effect on the reading score, which has potential to be related to writing score based on the nature of standardized testing. 
+
+```{r}
+#Test an interaction that affected reading score
+model_interaction <- lm(writing_score ~ gender + ethnic_group + parent_educ + lunch_type + test_prep + is_first_child + parent_marital_status * wkly_study_hours, data = writing_df)
+
+summary(model_interaction)
+
+
+# Tidy the model summary and filter by p-value
+significant_terms <- tidy(model_interaction, conf.int = TRUE) %>%
+  filter(p.value < 0.05)
+
+# View significant terms
+print(significant_terms)
+```
+
+Here we see that the interaction of parent marital status and weekly study hours not significant based on p-value. Let's compare R^2 values.
+
+```{r}
+# Extract adjusted R^2 for both models
+adj_r2_all <- summary(final_model)$adj.r.squared
+adj_r2_reduced <- summary(model_interaction)$adj.r.squared
+
+# Print results
+cat("Significant Model: Adjusted R^2 =", adj_r2_all, "\n")
+cat("Model Interaction Based on Reading: Adjusted R^2 =", adj_r2_reduced, "\n")
+
+if (adj_r2_all > adj_r2_reduced) {
+  cat("Best Model by Adjusted R^2: backward_model\n")
+} else {
+  cat("Best Model by Adjusted R^2: model_interaction\n")
+}
+
+```
+The adjusted R^2 value of the original model we selected, without interactions, is 0.3397433. The value for the interaction model is 0.3467879. That means incorporating this interaction does explain slightly more variability.
+
+Therefore the final model for writing score is the significant model with interactions: 
+
+**writing_score ~ gender + ethnic_group + lunch_type + test_prep + parent_educ + parent_marital_status * wkly_study_hours**
+
+# Compare With Other Scores
+
+Now we will add the other scores, math and reading, to see if we can use them to predict any patterns in writing.
+
+```{r}
+all_scores = scores_df |> select(-id) |> na.omit()
+
+all_scores_combined = lm(writing_score ~ math_score + reading_score + gender + ethnic_group + parent_educ + lunch_type + test_prep + parent_marital_status * wkly_study_hours, data = all_scores)
+
+writing_final_model = lm(writing_score ~ gender + ethnic_group + parent_educ + lunch_type + test_prep + parent_marital_status * wkly_study_hours, data = writing_df)
+
+mse_writing_scores = mean((all_scores$writing_score - predict(all_scores_combined, newdata = all_scores))^2)
+
+mse_writing = mean((all_scores$writing_score - predict(writing_final_model, newdata = all_scores))^2)
+
+tibble(
+  model = c("Writing with scores", "Writing without scores"),
+  MSE = c(mse_writing_scores, mse_writing)
+) |> knitr::kable()
+```
+
+The model that combines scores has far superior predictive performance compared to the "Writing without Scores" model. The large gap in MSE indicates that the variables or interactions included in the combined scores model are critical for explaining the variability in the writing scores. The MSE of the "Writing without Scores" model is many times larger than that of the "Writing with Scores" model, highlighting the significant difference in predictive accuracy between the two models.
+
