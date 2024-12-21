@@ -1,6 +1,6 @@
 ---
 title: "Exploratory Data Analysis"
-output: html_document
+output: github_document
 ---
 
 ```{r eda_setup, include = FALSE}
@@ -9,6 +9,7 @@ library(tidyverse)
 library(stringr)
 library(dplyr)
 library(ggplot2)
+library(here)
 
 # DEFAULT SETTINGS FOR PLOTS
 knitr::opts_chunk$set(
@@ -30,13 +31,9 @@ theme_set(
 )
 ```
 
-```{r}
-library(here)
-```
-
 Import data.
 ```{r}
-read_csv("/Users/helenyousaf/Desktop/biostats_final/Project_1_data.csv")
+source("scores_data.R")
 ```
 
 Preview data.
@@ -111,7 +108,7 @@ scores_df |>
   labs(
     title = ("Ethnic Group and Math Scores"),
     x = "Math Score (0-100)",
-    y = "Density",
+    y = "Count",
     fill = "Ethnic Group"
   ) +
   facet_grid(. ~ ethnic_group)
@@ -125,7 +122,7 @@ scores_df |>
   labs(
     title = ("Ethnic Group and Reading Scores"),
     x = "Reading Score (0-100)",
-    y = "Density",
+    y = "Count",
     fill = "Ethnic Group"
   ) +
   facet_grid(. ~ ethnic_group)
@@ -139,7 +136,7 @@ scores_df |>
   labs(
     title = ("Ethnic Group and Writing Scores"),
     x = "Writing Score (0-100)",
-    y = "Density",
+    y = "Count",
     fill = "Ethnic Group"
   ) +
   facet_grid(. ~ ethnic_group)
@@ -148,11 +145,6 @@ scores_df |>
 ```{r}
 scores_df |> colnames()
 ```
-
-```{r}
-library(here)
-```
-
 
 ```{r}
 # Load necessary libraries
@@ -239,7 +231,8 @@ categorical_plots <- categorical_vars %>%
 
 print(categorical_plots)
 ```
-```{r}
+
+```{r eval = FALSE}
 library(ggplot2)
 
 # Function to create correlation plots
