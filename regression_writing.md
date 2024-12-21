@@ -14,20 +14,20 @@ Riya Kalra
     ## ℹ Use `spec()` to retrieve the full column specification for this data.
     ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
 
-<div id="dlsvfdgmop" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#dlsvfdgmop table {
+<div id="kqnozrqojr" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#kqnozrqojr table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
-&#10;#dlsvfdgmop thead, #dlsvfdgmop tbody, #dlsvfdgmop tfoot, #dlsvfdgmop tr, #dlsvfdgmop td, #dlsvfdgmop th {
+&#10;#kqnozrqojr thead, #kqnozrqojr tbody, #kqnozrqojr tfoot, #kqnozrqojr tr, #kqnozrqojr td, #kqnozrqojr th {
   border-style: none;
 }
-&#10;#dlsvfdgmop p {
+&#10;#kqnozrqojr p {
   margin: 0;
   padding: 0;
 }
-&#10;#dlsvfdgmop .gt_table {
+&#10;#kqnozrqojr .gt_table {
   display: table;
   border-collapse: collapse;
   line-height: normal;
@@ -52,11 +52,11 @@ Riya Kalra
   border-left-width: 2px;
   border-left-color: #D3D3D3;
 }
-&#10;#dlsvfdgmop .gt_caption {
+&#10;#kqnozrqojr .gt_caption {
   padding-top: 4px;
   padding-bottom: 4px;
 }
-&#10;#dlsvfdgmop .gt_title {
+&#10;#kqnozrqojr .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -67,7 +67,7 @@ Riya Kalra
   border-bottom-color: #FFFFFF;
   border-bottom-width: 0;
 }
-&#10;#dlsvfdgmop .gt_subtitle {
+&#10;#kqnozrqojr .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -78,7 +78,7 @@ Riya Kalra
   border-top-color: #FFFFFF;
   border-top-width: 0;
 }
-&#10;#dlsvfdgmop .gt_heading {
+&#10;#kqnozrqojr .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -89,12 +89,12 @@ Riya Kalra
   border-right-width: 1px;
   border-right-color: #D3D3D3;
 }
-&#10;#dlsvfdgmop .gt_bottom_border {
+&#10;#kqnozrqojr .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
-&#10;#dlsvfdgmop .gt_col_headings {
+&#10;#kqnozrqojr .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -108,7 +108,7 @@ Riya Kalra
   border-right-width: 1px;
   border-right-color: #D3D3D3;
 }
-&#10;#dlsvfdgmop .gt_col_heading {
+&#10;#kqnozrqojr .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -127,7 +127,7 @@ Riya Kalra
   padding-right: 5px;
   overflow-x: hidden;
 }
-&#10;#dlsvfdgmop .gt_column_spanner_outer {
+&#10;#kqnozrqojr .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -138,13 +138,13 @@ Riya Kalra
   padding-left: 4px;
   padding-right: 4px;
 }
-&#10;#dlsvfdgmop .gt_column_spanner_outer:first-child {
+&#10;#kqnozrqojr .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
-&#10;#dlsvfdgmop .gt_column_spanner_outer:last-child {
+&#10;#kqnozrqojr .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
-&#10;#dlsvfdgmop .gt_column_spanner {
+&#10;#kqnozrqojr .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -155,10 +155,10 @@ Riya Kalra
   display: inline-block;
   width: 100%;
 }
-&#10;#dlsvfdgmop .gt_spanner_row {
+&#10;#kqnozrqojr .gt_spanner_row {
   border-bottom-style: hidden;
 }
-&#10;#dlsvfdgmop .gt_group_heading {
+&#10;#kqnozrqojr .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -183,7 +183,7 @@ Riya Kalra
   vertical-align: middle;
   text-align: left;
 }
-&#10;#dlsvfdgmop .gt_empty_group_heading {
+&#10;#kqnozrqojr .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -197,13 +197,13 @@ Riya Kalra
   border-bottom-color: #D3D3D3;
   vertical-align: middle;
 }
-&#10;#dlsvfdgmop .gt_from_md > :first-child {
+&#10;#kqnozrqojr .gt_from_md > :first-child {
   margin-top: 0;
 }
-&#10;#dlsvfdgmop .gt_from_md > :last-child {
+&#10;#kqnozrqojr .gt_from_md > :last-child {
   margin-bottom: 0;
 }
-&#10;#dlsvfdgmop .gt_row {
+&#10;#kqnozrqojr .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -221,7 +221,7 @@ Riya Kalra
   vertical-align: middle;
   overflow-x: hidden;
 }
-&#10;#dlsvfdgmop .gt_stub {
+&#10;#kqnozrqojr .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -233,7 +233,7 @@ Riya Kalra
   padding-left: 5px;
   padding-right: 5px;
 }
-&#10;#dlsvfdgmop .gt_stub_row_group {
+&#10;#kqnozrqojr .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -246,13 +246,13 @@ Riya Kalra
   padding-right: 5px;
   vertical-align: top;
 }
-&#10;#dlsvfdgmop .gt_row_group_first td {
+&#10;#kqnozrqojr .gt_row_group_first td {
   border-top-width: 2px;
 }
-&#10;#dlsvfdgmop .gt_row_group_first th {
+&#10;#kqnozrqojr .gt_row_group_first th {
   border-top-width: 2px;
 }
-&#10;#dlsvfdgmop .gt_summary_row {
+&#10;#kqnozrqojr .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -261,14 +261,14 @@ Riya Kalra
   padding-left: 5px;
   padding-right: 5px;
 }
-&#10;#dlsvfdgmop .gt_first_summary_row {
+&#10;#kqnozrqojr .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D3D3D3;
 }
-&#10;#dlsvfdgmop .gt_first_summary_row.thick {
+&#10;#kqnozrqojr .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
-&#10;#dlsvfdgmop .gt_last_summary_row {
+&#10;#kqnozrqojr .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -277,7 +277,7 @@ Riya Kalra
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
-&#10;#dlsvfdgmop .gt_grand_summary_row {
+&#10;#kqnozrqojr .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -286,7 +286,7 @@ Riya Kalra
   padding-left: 5px;
   padding-right: 5px;
 }
-&#10;#dlsvfdgmop .gt_first_grand_summary_row {
+&#10;#kqnozrqojr .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -295,7 +295,7 @@ Riya Kalra
   border-top-width: 6px;
   border-top-color: #D3D3D3;
 }
-&#10;#dlsvfdgmop .gt_last_grand_summary_row_top {
+&#10;#kqnozrqojr .gt_last_grand_summary_row_top {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -304,10 +304,10 @@ Riya Kalra
   border-bottom-width: 6px;
   border-bottom-color: #D3D3D3;
 }
-&#10;#dlsvfdgmop .gt_striped {
+&#10;#kqnozrqojr .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
-&#10;#dlsvfdgmop .gt_table_body {
+&#10;#kqnozrqojr .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -315,7 +315,7 @@ Riya Kalra
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
-&#10;#dlsvfdgmop .gt_footnotes {
+&#10;#kqnozrqojr .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -328,7 +328,7 @@ Riya Kalra
   border-right-width: 2px;
   border-right-color: #D3D3D3;
 }
-&#10;#dlsvfdgmop .gt_footnote {
+&#10;#kqnozrqojr .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-top: 4px;
@@ -336,7 +336,7 @@ Riya Kalra
   padding-left: 5px;
   padding-right: 5px;
 }
-&#10;#dlsvfdgmop .gt_sourcenotes {
+&#10;#kqnozrqojr .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -349,64 +349,64 @@ Riya Kalra
   border-right-width: 2px;
   border-right-color: #D3D3D3;
 }
-&#10;#dlsvfdgmop .gt_sourcenote {
+&#10;#kqnozrqojr .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
   padding-left: 5px;
   padding-right: 5px;
 }
-&#10;#dlsvfdgmop .gt_left {
+&#10;#kqnozrqojr .gt_left {
   text-align: left;
 }
-&#10;#dlsvfdgmop .gt_center {
+&#10;#kqnozrqojr .gt_center {
   text-align: center;
 }
-&#10;#dlsvfdgmop .gt_right {
+&#10;#kqnozrqojr .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
-&#10;#dlsvfdgmop .gt_font_normal {
+&#10;#kqnozrqojr .gt_font_normal {
   font-weight: normal;
 }
-&#10;#dlsvfdgmop .gt_font_bold {
+&#10;#kqnozrqojr .gt_font_bold {
   font-weight: bold;
 }
-&#10;#dlsvfdgmop .gt_font_italic {
+&#10;#kqnozrqojr .gt_font_italic {
   font-style: italic;
 }
-&#10;#dlsvfdgmop .gt_super {
+&#10;#kqnozrqojr .gt_super {
   font-size: 65%;
 }
-&#10;#dlsvfdgmop .gt_footnote_marks {
+&#10;#kqnozrqojr .gt_footnote_marks {
   font-size: 75%;
   vertical-align: 0.4em;
   position: initial;
 }
-&#10;#dlsvfdgmop .gt_asterisk {
+&#10;#kqnozrqojr .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
-&#10;#dlsvfdgmop .gt_indent_1 {
+&#10;#kqnozrqojr .gt_indent_1 {
   text-indent: 5px;
 }
-&#10;#dlsvfdgmop .gt_indent_2 {
+&#10;#kqnozrqojr .gt_indent_2 {
   text-indent: 10px;
 }
-&#10;#dlsvfdgmop .gt_indent_3 {
+&#10;#kqnozrqojr .gt_indent_3 {
   text-indent: 15px;
 }
-&#10;#dlsvfdgmop .gt_indent_4 {
+&#10;#kqnozrqojr .gt_indent_4 {
   text-indent: 20px;
 }
-&#10;#dlsvfdgmop .gt_indent_5 {
+&#10;#kqnozrqojr .gt_indent_5 {
   text-indent: 25px;
 }
-&#10;#dlsvfdgmop .katex-display {
+&#10;#kqnozrqojr .katex-display {
   display: inline-flex !important;
   margin-bottom: 0.75em !important;
 }
-&#10;#dlsvfdgmop div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+&#10;#kqnozrqojr div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
   height: 0px !important;
 }
 </style>
@@ -872,8 +872,8 @@ parent_marital_status + wkly_study_hours**
     ## - lunch_type             1   11607.5 102113 3064.2
     ## - gender                 1   12107.9 102613 3067.1
 
-Backward Model: **writing_score ~ gender + ethnic_group + parent_educ +
-lunch_type + test_prep + parent_marital_status + is_first_child**
+Backward Model: **gender + ethnic_group + parent_educ + lunch_type +
+test_prep + parent_marital_status + nr_siblings + wkly_study_hours**
 
 ### Forward Model
 
@@ -1040,8 +1040,9 @@ lunch_type + test_prep + parent_marital_status + is_first_child**
     ## Multiple R-squared:  0.3613, Adjusted R-squared:  0.341 
     ## F-statistic: 17.85 on 18 and 568 DF,  p-value: < 2.2e-16
 
-Forward model: **writing_score ~ lunch_type + gender + test_prep +
-ethnic_group + parent_educ + parent_marital_status + is_first_child**
+Forward model: **writing_score ~ gender + lunch_type + test_prep +
+parent_educ + ethnic_group + parent_marital_status + wkly_study_hours +
+nr_siblings**
 
 # Select Final Model
 
@@ -1099,9 +1100,9 @@ print(comparison_table)
 ```
 
     ##         Model Adjusted_R2      AIC     RMSE
-    ## 1     Forward   0.3410300 4663.222 12.78190
-    ## 2    Backward   0.3410300 4663.222 12.88400
-    ## 3 Significant   0.3397433 4663.400 12.83263
+    ## 1     Forward   0.3410300 4663.222 12.74218
+    ## 2    Backward   0.3410300 4663.222 12.80641
+    ## 3 Significant   0.3397433 4663.400 12.90316
 
 ``` r
 # Decide the Final Model
@@ -1118,7 +1119,7 @@ if (aic_forward < aic_backward & aic_forward < aic_significant &
 }
 ```
 
-    ## Final Model: Significant Model
+    ## Final Model: Backward Selection
 
 ``` r
 # Print Summary of Final Model
@@ -1127,76 +1128,571 @@ summary(final_model)
 
     ## 
     ## Call:
-    ## lm(formula = writing_score ~ gender + ethnic_group + lunch_type + 
-    ##     test_prep + parent_educ + parent_marital_status + wkly_study_hours, 
-    ##     data = writing_df_significant)
+    ## lm(formula = writing_score ~ gender + ethnic_group + parent_educ + 
+    ##     lunch_type + test_prep + parent_marital_status + nr_siblings + 
+    ##     wkly_study_hours, data = writing_df)
     ## 
     ## Residuals:
     ##     Min      1Q  Median      3Q     Max 
-    ## -45.977  -7.958   0.963   9.188  26.159 
+    ## -46.297  -8.020   1.032   9.340  26.505 
     ## 
     ## Coefficients:
     ##                              Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)                  52.36059    2.76840  18.914  < 2e-16 ***
-    ## gendermale                   -9.33994    1.06218  -8.793  < 2e-16 ***
-    ## ethnic_groupB                -1.46879    2.15698  -0.681 0.496180    
-    ## ethnic_groupC                 0.06504    2.06421   0.032 0.974877    
-    ## ethnic_groupD                 4.93524    2.07666   2.377 0.017806 *  
-    ## ethnic_groupE                 5.88238    2.27782   2.582 0.010059 *  
-    ## lunch_typestandard            9.38554    1.09899   8.540  < 2e-16 ***
-    ## test_prepcompleted            8.92515    1.11256   8.022 5.96e-15 ***
-    ## parent_educhigh school        0.06908    1.67411   0.041 0.967101    
-    ## parent_educsome college       4.48923    1.69359   2.651 0.008256 ** 
-    ## parent_educassociates degree  6.28800    1.65187   3.807 0.000156 ***
-    ## parent_educbachelors degree   9.23430    1.93800   4.765 2.40e-06 ***
-    ## parent_educmasters degree    11.63915    2.36383   4.924 1.11e-06 ***
-    ## parent_marital_statusmarried  5.28139    1.50141   3.518 0.000470 ***
-    ## parent_marital_statussingle   2.20131    1.71297   1.285 0.199286    
-    ## parent_marital_statuswidowed  6.89594    3.54724   1.944 0.052384 .  
-    ## wkly_study_hours5-10          2.80033    1.25235   2.236 0.025735 *  
-    ## wkly_study_hours> 10          1.35009    1.63558   0.825 0.409463    
+    ## (Intercept)                  51.28924    2.86231  17.919  < 2e-16 ***
+    ## gendermale                   -9.26189    1.06250  -8.717  < 2e-16 ***
+    ## ethnic_groupB                -1.30296    2.15790  -0.604 0.546211    
+    ## ethnic_groupC                 0.09471    2.06230   0.046 0.963387    
+    ## ethnic_groupD                 5.08525    2.07720   2.448 0.014662 *  
+    ## ethnic_groupE                 5.98545    2.27671   2.629 0.008796 ** 
+    ## parent_educhigh school       -0.12968    1.67806  -0.077 0.938426    
+    ## parent_educsome college       4.38949    1.69333   2.592 0.009781 ** 
+    ## parent_educassociates degree  6.15730    1.65271   3.726 0.000214 ***
+    ## parent_educbachelors degree   9.20059    1.93625   4.752 2.56e-06 ***
+    ## parent_educmasters degree    11.67091    2.36162   4.942 1.02e-06 ***
+    ## lunch_typestandard            9.37121    1.09797   8.535  < 2e-16 ***
+    ## test_prepcompleted            8.84425    1.11287   7.947 1.03e-14 ***
+    ## parent_marital_statusmarried  5.21090    1.50073   3.472 0.000555 ***
+    ## parent_marital_statussingle   2.12419    1.71212   1.241 0.215237    
+    ## parent_marital_statuswidowed  6.61763    3.54896   1.865 0.062743 .  
+    ## nr_siblings                   0.51954    0.35758   1.453 0.146797    
+    ## wkly_study_hours5-10          2.87616    1.25222   2.297 0.021990 *  
+    ## wkly_study_hours> 10          1.22990    1.63608   0.752 0.452521    
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ## Residual standard error: 12.64 on 569 degrees of freedom
-    ## Multiple R-squared:  0.3589, Adjusted R-squared:  0.3397 
-    ## F-statistic: 18.74 on 17 and 569 DF,  p-value: < 2.2e-16
+    ## Residual standard error: 12.62 on 568 degrees of freedom
+    ## Multiple R-squared:  0.3613, Adjusted R-squared:  0.341 
+    ## F-statistic: 17.85 on 18 and 568 DF,  p-value: < 2.2e-16
+
+``` r
+library(broom)
+library(knitr)
+library(kableExtra)
+```
+
+    ## 
+    ## Attaching package: 'kableExtra'
+
+    ## The following object is masked from 'package:dplyr':
+    ## 
+    ##     group_rows
+
+``` r
+# Tidy the final model
+tidy_model <- tidy(final_model, conf.int = TRUE)
+
+# Display the tidied model
+tidy_model |>
+  kable(caption = "Summary of the Final Model for Writing Score", 
+        format = "html") |>
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = FALSE)
+```
+
+<table class="table table-striped table-hover table-condensed" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<caption>
+Summary of the Final Model for Writing Score
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+term
+</th>
+<th style="text-align:right;">
+estimate
+</th>
+<th style="text-align:right;">
+std.error
+</th>
+<th style="text-align:right;">
+statistic
+</th>
+<th style="text-align:right;">
+p.value
+</th>
+<th style="text-align:right;">
+conf.low
+</th>
+<th style="text-align:right;">
+conf.high
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+(Intercept)
+</td>
+<td style="text-align:right;">
+51.2892392
+</td>
+<td style="text-align:right;">
+2.8623087
+</td>
+<td style="text-align:right;">
+17.9188359
+</td>
+<td style="text-align:right;">
+0.0000000
+</td>
+<td style="text-align:right;">
+45.6672377
+</td>
+<td style="text-align:right;">
+56.911241
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+gendermale
+</td>
+<td style="text-align:right;">
+-9.2618930
+</td>
+<td style="text-align:right;">
+1.0624996
+</td>
+<td style="text-align:right;">
+-8.7170794
+</td>
+<td style="text-align:right;">
+0.0000000
+</td>
+<td style="text-align:right;">
+-11.3488007
+</td>
+<td style="text-align:right;">
+-7.174985
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ethnic_groupB
+</td>
+<td style="text-align:right;">
+-1.3029603
+</td>
+<td style="text-align:right;">
+2.1578950
+</td>
+<td style="text-align:right;">
+-0.6038108
+</td>
+<td style="text-align:right;">
+0.5462105
+</td>
+<td style="text-align:right;">
+-5.5413882
+</td>
+<td style="text-align:right;">
+2.935468
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ethnic_groupC
+</td>
+<td style="text-align:right;">
+0.0947083
+</td>
+<td style="text-align:right;">
+2.0623022
+</td>
+<td style="text-align:right;">
+0.0459236
+</td>
+<td style="text-align:right;">
+0.9633873
+</td>
+<td style="text-align:right;">
+-3.9559611
+</td>
+<td style="text-align:right;">
+4.145378
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ethnic_groupD
+</td>
+<td style="text-align:right;">
+5.0852451
+</td>
+<td style="text-align:right;">
+2.0772028
+</td>
+<td style="text-align:right;">
+2.4481216
+</td>
+<td style="text-align:right;">
+0.0146618
+</td>
+<td style="text-align:right;">
+1.0053087
+</td>
+<td style="text-align:right;">
+9.165181
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ethnic_groupE
+</td>
+<td style="text-align:right;">
+5.9854469
+</td>
+<td style="text-align:right;">
+2.2767057
+</td>
+<td style="text-align:right;">
+2.6289946
+</td>
+<td style="text-align:right;">
+0.0087956
+</td>
+<td style="text-align:right;">
+1.5136571
+</td>
+<td style="text-align:right;">
+10.457237
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+parent_educhigh school
+</td>
+<td style="text-align:right;">
+-0.1296848
+</td>
+<td style="text-align:right;">
+1.6780638
+</td>
+<td style="text-align:right;">
+-0.0772824
+</td>
+<td style="text-align:right;">
+0.9384261
+</td>
+<td style="text-align:right;">
+-3.4256526
+</td>
+<td style="text-align:right;">
+3.166283
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+parent_educsome college
+</td>
+<td style="text-align:right;">
+4.3894905
+</td>
+<td style="text-align:right;">
+1.6933295
+</td>
+<td style="text-align:right;">
+2.5922247
+</td>
+<td style="text-align:right;">
+0.0097812
+</td>
+<td style="text-align:right;">
+1.0635386
+</td>
+<td style="text-align:right;">
+7.715442
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+parent_educassociates degree
+</td>
+<td style="text-align:right;">
+6.1572997
+</td>
+<td style="text-align:right;">
+1.6527129
+</td>
+<td style="text-align:right;">
+3.7255712
+</td>
+<td style="text-align:right;">
+0.0002143
+</td>
+<td style="text-align:right;">
+2.9111248
+</td>
+<td style="text-align:right;">
+9.403475
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+parent_educbachelors degree
+</td>
+<td style="text-align:right;">
+9.2005888
+</td>
+<td style="text-align:right;">
+1.9362546
+</td>
+<td style="text-align:right;">
+4.7517454
+</td>
+<td style="text-align:right;">
+0.0000026
+</td>
+<td style="text-align:right;">
+5.3974958
+</td>
+<td style="text-align:right;">
+13.003682
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+parent_educmasters degree
+</td>
+<td style="text-align:right;">
+11.6709124
+</td>
+<td style="text-align:right;">
+2.3616248
+</td>
+<td style="text-align:right;">
+4.9418995
+</td>
+<td style="text-align:right;">
+0.0000010
+</td>
+<td style="text-align:right;">
+7.0323287
+</td>
+<td style="text-align:right;">
+16.309496
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+lunch_typestandard
+</td>
+<td style="text-align:right;">
+9.3712123
+</td>
+<td style="text-align:right;">
+1.0979665
+</td>
+<td style="text-align:right;">
+8.5350623
+</td>
+<td style="text-align:right;">
+0.0000000
+</td>
+<td style="text-align:right;">
+7.2146422
+</td>
+<td style="text-align:right;">
+11.527782
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+test_prepcompleted
+</td>
+<td style="text-align:right;">
+8.8442464
+</td>
+<td style="text-align:right;">
+1.1128660
+</td>
+<td style="text-align:right;">
+7.9472699
+</td>
+<td style="text-align:right;">
+0.0000000
+</td>
+<td style="text-align:right;">
+6.6584114
+</td>
+<td style="text-align:right;">
+11.030081
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+parent_marital_statusmarried
+</td>
+<td style="text-align:right;">
+5.2108977
+</td>
+<td style="text-align:right;">
+1.5007292
+</td>
+<td style="text-align:right;">
+3.4722438
+</td>
+<td style="text-align:right;">
+0.0005554
+</td>
+<td style="text-align:right;">
+2.2632414
+</td>
+<td style="text-align:right;">
+8.158554
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+parent_marital_statussingle
+</td>
+<td style="text-align:right;">
+2.1241934
+</td>
+<td style="text-align:right;">
+1.7121223
+</td>
+<td style="text-align:right;">
+1.2406785
+</td>
+<td style="text-align:right;">
+0.2152367
+</td>
+<td style="text-align:right;">
+-1.2386704
+</td>
+<td style="text-align:right;">
+5.487057
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+parent_marital_statuswidowed
+</td>
+<td style="text-align:right;">
+6.6176345
+</td>
+<td style="text-align:right;">
+3.5489564
+</td>
+<td style="text-align:right;">
+1.8646706
+</td>
+<td style="text-align:right;">
+0.0627431
+</td>
+<td style="text-align:right;">
+-0.3530456
+</td>
+<td style="text-align:right;">
+13.588315
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+nr_siblings
+</td>
+<td style="text-align:right;">
+0.5195391
+</td>
+<td style="text-align:right;">
+0.3575814
+</td>
+<td style="text-align:right;">
+1.4529254
+</td>
+<td style="text-align:right;">
+0.1467967
+</td>
+<td style="text-align:right;">
+-0.1828041
+</td>
+<td style="text-align:right;">
+1.221882
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+wkly_study_hours5-10
+</td>
+<td style="text-align:right;">
+2.8761601
+</td>
+<td style="text-align:right;">
+1.2522204
+</td>
+<td style="text-align:right;">
+2.2968481
+</td>
+<td style="text-align:right;">
+0.0219904
+</td>
+<td style="text-align:right;">
+0.4166123
+</td>
+<td style="text-align:right;">
+5.335708
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+wkly_study_hours\> 10
+</td>
+<td style="text-align:right;">
+1.2298991
+</td>
+<td style="text-align:right;">
+1.6360795
+</td>
+<td style="text-align:right;">
+0.7517355
+</td>
+<td style="text-align:right;">
+0.4525215
+</td>
+<td style="text-align:right;">
+-1.9836053
+</td>
+<td style="text-align:right;">
+4.443403
+</td>
+</tr>
+</tbody>
+</table>
 
 Current best model is: **writing_score ~ gender + ethnic_group +
-parent_educ + lunch_type + test_prep + parent_marital_status +
-is_first_child**
+lunch_type + test_prep + parent_educ + parent_marital_status +
+wkly_study_hours**
 
 ## Diagnostics
 
 ``` r
 # Residual diagnostics
 par(mfrow = c(2, 2))
-plot(backward_model)
+plot(final_model)
 ```
 
 ![](regression_writing_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
 
 ``` r
 # Normality of residuals
-shapiro.test(residuals(backward_model))
+shapiro.test(residuals(final_model))
 ```
 
     ## 
     ##  Shapiro-Wilk normality test
     ## 
-    ## data:  residuals(backward_model)
+    ## data:  residuals(final_model)
     ## W = 0.98759, p-value = 6.932e-05
 
 ``` r
 # Homoscedasticity test
 library(lmtest)
-bptest(backward_model)
+bptest(final_model)
 ```
 
     ## 
     ##  studentized Breusch-Pagan test
     ## 
-    ## data:  backward_model
+    ## data:  final_model
     ## BP = 14.218, df = 18, p-value = 0.7148
 
 ``` r
@@ -1205,7 +1701,7 @@ train_control <- trainControl(method = "cv", number = 10)
 
 # Perform cross-validation on the final model
 cv_final <- train(
-  formula(backward_model),  # Extract formula from the final model
+  formula(final_model),  # Extract formula from the final model
   data = writing_df,
   method = "lm",  # Linear regression
   trControl = train_control
@@ -1222,11 +1718,11 @@ print(cv_final)
     ## 
     ## No pre-processing
     ## Resampling: Cross-Validated (10 fold) 
-    ## Summary of sample sizes: 529, 530, 527, 527, 528, 528, ... 
+    ## Summary of sample sizes: 526, 528, 529, 529, 529, 530, ... 
     ## Resampling results:
     ## 
     ##   RMSE      Rsquared   MAE     
-    ##   12.89168  0.3268753  10.38886
+    ##   12.77428  0.3283303  10.33364
     ## 
     ## Tuning parameter 'intercept' was held constant at a value of TRUE
 
@@ -1241,19 +1737,19 @@ cat("Cross-Validation Metrics for Final Model:\n")
 cat("RMSE:", cv_final$results$RMSE, "\n")
 ```
 
-    ## RMSE: 12.89168
+    ## RMSE: 12.77428
 
 ``` r
 cat("R²:", cv_final$results$Rsquared, "\n")
 ```
 
-    ## R²: 0.3268753
+    ## R²: 0.3283303
 
 ``` r
 cat("MAE:", cv_final$results$MAE, "\n")
 ```
 
-    ## MAE: 10.38886
+    ## MAE: 10.33364
 
 # Interactions
 
@@ -1269,6 +1765,7 @@ of standardized testing.
 ``` r
 #Test an interaction that affected reading score
 model_interaction <- lm(writing_score ~ gender + ethnic_group + parent_educ + lunch_type + test_prep + is_first_child + parent_marital_status * wkly_study_hours, data = writing_df)
+
 summary(model_interaction)
 ```
 
@@ -1368,19 +1865,18 @@ print(significant_terms)
     ## 12 parent_marital_stat…    16.6       5.33      3.11 1.99e- 3     6.09     27.0
 
 Here we see that the interaction of parent marital status and weekly
-study hours is not significant based on p-value. Let’s compare R^2
-values.
+study hours not significant based on p-value. Let’s compare R^2 values.
 
 ``` r
 # Extract adjusted R^2 for both models
-adj_r2_all <- summary(backward_model)$adj.r.squared
+adj_r2_all <- summary(final_model)$adj.r.squared
 adj_r2_reduced <- summary(model_interaction)$adj.r.squared
 
 # Print results
-cat("Backward Model: Adjusted R^2 =", adj_r2_all, "\n")
+cat("Significant Model: Adjusted R^2 =", adj_r2_all, "\n")
 ```
 
-    ## Backward Model: Adjusted R^2 = 0.34103
+    ## Significant Model: Adjusted R^2 = 0.34103
 
 ``` r
 cat("Model Interaction Based on Reading: Adjusted R^2 =", adj_r2_reduced, "\n")
@@ -1399,14 +1895,15 @@ if (adj_r2_all > adj_r2_reduced) {
     ## Best Model by Adjusted R^2: model_interaction
 
 The adjusted R^2 value of the original model we selected, without
-interactions, is 0.3223164 . The value for the interaction model is
-0.3202919. That means incorporating this interaction does not explain
+interactions, is 0.3397433. The value for the interaction model is
+0.3467879. That means incorporating this interaction does not explain
 more variability.
 
-Therefore the final model for writing score is the backward model:
+Therefore the final model for writing score is the significant model
+with interactions:
 
-**writing_score ~ gender + ethnic_group + parent_educ + lunch_type +
-test_prep + parent_marital_status + is_first_child**
+**writing_score ~ gender + ethnic_group + lunch_type + test_prep +
+parent_educ + parent_marital_status \* wkly_study_hours**
 
 # Compare With Other Scores
 
@@ -1416,9 +1913,9 @@ them to predict any patterns in writing.
 ``` r
 all_scores = scores_df |> select(-id) |> na.omit()
 
-all_scores_combined = lm(writing_score ~ math_score + reading_score + lunch_type + gender + test_prep + parent_educ + ethnic_group + parent_marital_status * wkly_study_hours, data = all_scores)
+all_scores_combined = lm(writing_score ~ math_score + reading_score + gender + ethnic_group + parent_educ + lunch_type + test_prep + parent_marital_status * wkly_study_hours, data = all_scores)
 
-writing_final_model = lm(writing_score ~ gender + ethnic_group + parent_educ + lunch_type + test_prep + parent_marital_status + is_first_child, data = writing_df)
+writing_final_model = lm(writing_score ~ gender + ethnic_group + parent_educ + lunch_type + test_prep + parent_marital_status * wkly_study_hours, data = writing_df)
 
 mse_writing_scores = mean((all_scores$writing_score - predict(all_scores_combined, newdata = all_scores))^2)
 
@@ -1433,7 +1930,7 @@ tibble(
 | model                  |       MSE |
 |:-----------------------|----------:|
 | Writing with scores    |  11.13261 |
-| Writing without scores | 155.96903 |
+| Writing without scores | 151.37152 |
 
 The model that combines scores has far superior predictive performance
 compared to the “Writing without Scores” model. The large gap in MSE

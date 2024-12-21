@@ -3,6 +3,7 @@ title: "Writing Regression"
 author: "Riya Kalra"
 date: "`r Sys.Date()`"
 output: github_document
+always_allow_html: true
 ---
 
 ```{r setup, include=FALSE, echo=FALSE}
@@ -157,6 +158,7 @@ bptest(significant_model)
 writing_df |> 
   ggplot(aes(sample = (writing_score))) +
   geom_qq() + geom_qq_line()
+
 ```
 
 ### Backward Model
@@ -166,7 +168,7 @@ mult.fit = lm(writing_score ~ ., data = writing_df)
 summary(mult.fit)
 backward_model = step(mult.fit, direction = "backward")
 ```
-Backward Model: **writing_score ~ gender + ethnic_group + parent_educ + lunch_type +  test_prep + parent_marital_status + is_first_child**
+Backward Model: **gender + ethnic_group + parent_educ + lunch_type + test_prep + parent_marital_status + nr_siblings + wkly_study_hours**
     
 ### Forward Model
 ```{r, echo=FALSE}
@@ -184,7 +186,7 @@ null_model <- lm(writing_score ~ 1, data = writing_df)
 forward_model = step(null_model, direction = "forward", scope = formula(mult.fit))
 summary(forward_model)
 ```
-Forward model: **writing_score ~ lunch_type + gender + test_prep + ethnic_group + parent_educ + parent_marital_status + is_first_child**
+Forward model: **writing_score ~ gender + lunch_type + test_prep + parent_educ + ethnic_group + parent_marital_status + wkly_study_hours + nr_siblings**
     
 
 # Select Final Model
@@ -255,30 +257,43 @@ if (aic_forward < aic_backward & aic_forward < aic_significant &
 
 # Print Summary of Final Model
 summary(final_model)
+
+library(broom)
+library(knitr)
+library(kableExtra)
+
+# Tidy the final model
+tidy_model <- tidy(final_model, conf.int = TRUE)
+
+# Display the tidied model
+tidy_model |>
+  kable(caption = "Summary of the Final Model for Writing Score", 
+        format = "html") |>
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = FALSE)
 ```
 
-Current best model is: **writing_score ~ gender + ethnic_group + parent_educ +  lunch_type + test_prep + parent_marital_status + is_first_child**
+Current best model is: **writing_score ~ gender + ethnic_group + lunch_type + test_prep + parent_educ + parent_marital_status + wkly_study_hours**
 
 
 ## Diagnostics
 ```{r}
 # Residual diagnostics
 par(mfrow = c(2, 2))
-plot(backward_model)
+plot(final_model)
 
 # Normality of residuals
-shapiro.test(residuals(backward_model))
+shapiro.test(residuals(final_model))
 
 # Homoscedasticity test
 library(lmtest)
-bptest(backward_model)
+bptest(final_model)
 
 # Define the cross-validation method (10-fold CV)
 train_control <- trainControl(method = "cv", number = 10)
 
 # Perform cross-validation on the final model
 cv_final <- train(
-  formula(backward_model),  # Extract formula from the final model
+  formula(final_model),  # Extract formula from the final model
   data = writing_df,
   method = "lm",  # Linear regression
   trControl = train_control
@@ -306,7 +321,9 @@ After using this model to test for all variables in combination, there were no i
 ```{r}
 #Test an interaction that affected reading score
 model_interaction <- lm(writing_score ~ gender + ethnic_group + parent_educ + lunch_type + test_prep + is_first_child + parent_marital_status * wkly_study_hours, data = writing_df)
+
 summary(model_interaction)
+
 
 # Tidy the model summary and filter by p-value
 significant_terms <- tidy(model_interaction, conf.int = TRUE) %>%
@@ -316,15 +333,15 @@ significant_terms <- tidy(model_interaction, conf.int = TRUE) %>%
 print(significant_terms)
 ```
 
-Here we see that the interaction of parent marital status and weekly study hours is not significant based on p-value. Let's compare R^2 values.
+Here we see that the interaction of parent marital status and weekly study hours not significant based on p-value. Let's compare R^2 values.
 
 ```{r}
 # Extract adjusted R^2 for both models
-adj_r2_all <- summary(backward_model)$adj.r.squared
+adj_r2_all <- summary(final_model)$adj.r.squared
 adj_r2_reduced <- summary(model_interaction)$adj.r.squared
 
 # Print results
-cat("Backward Model: Adjusted R^2 =", adj_r2_all, "\n")
+cat("Significant Model: Adjusted R^2 =", adj_r2_all, "\n")
 cat("Model Interaction Based on Reading: Adjusted R^2 =", adj_r2_reduced, "\n")
 
 if (adj_r2_all > adj_r2_reduced) {
@@ -334,11 +351,11 @@ if (adj_r2_all > adj_r2_reduced) {
 }
 
 ```
-The adjusted R^2 value of the original model we selected, without interactions, is 0.3223164 . The value for the interaction model is 0.3202919. That means incorporating this interaction does not explain more variability.
+The adjusted R^2 value of the original model we selected, without interactions, is 0.3397433. The value for the interaction model is 0.3467879. That means incorporating this interaction does explain slightly more variability.
 
-Therefore the final model for writing score is the backward model: 
+Therefore the final model for writing score is the significant model with interactions: 
 
-**writing_score ~ gender + ethnic_group + parent_educ + lunch_type + test_prep + parent_marital_status + is_first_child**
+**writing_score ~ gender + ethnic_group + lunch_type + test_prep + parent_educ + parent_marital_status * wkly_study_hours**
 
 # Compare With Other Scores
 
@@ -347,9 +364,9 @@ Now we will add the other scores, math and reading, to see if we can use them to
 ```{r}
 all_scores = scores_df |> select(-id) |> na.omit()
 
-all_scores_combined = lm(writing_score ~ math_score + reading_score + gender + ethnic_group + parent_educ + lunch_type + test_prep + parent_marital_status + is_first_child, data = all_scores)
+all_scores_combined = lm(writing_score ~ math_score + reading_score + gender + ethnic_group + parent_educ + lunch_type + test_prep + parent_marital_status * wkly_study_hours, data = all_scores)
 
-writing_final_model = lm(writing_score ~ gender + ethnic_group + parent_educ + lunch_type + test_prep + parent_marital_status + is_first_child, data = writing_df)
+writing_final_model = lm(writing_score ~ gender + ethnic_group + parent_educ + lunch_type + test_prep + parent_marital_status * wkly_study_hours, data = writing_df)
 
 mse_writing_scores = mean((all_scores$writing_score - predict(all_scores_combined, newdata = all_scores))^2)
 
@@ -362,3 +379,4 @@ tibble(
 ```
 
 The model that combines scores has far superior predictive performance compared to the "Writing without Scores" model. The large gap in MSE indicates that the variables or interactions included in the combined scores model are critical for explaining the variability in the writing scores. The MSE of the "Writing without Scores" model is many times larger than that of the "Writing with Scores" model, highlighting the significant difference in predictive accuracy between the two models.
+
